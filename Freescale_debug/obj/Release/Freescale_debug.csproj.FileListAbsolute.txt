@@ -1,0 +1,13 @@
+F:\Project_Compotition\6.MyFreescal_10th\FreeScale_debug_platform\Freescale_debug\Freescale_debug\bin\Release\Freescale_debug.exe.config
+F:\Project_Compotition\6.MyFreescal_10th\FreeScale_debug_platform\Freescale_debug\Freescale_debug\obj\Release\Interop.Office.dll
+F:\Project_Compotition\6.MyFreescal_10th\FreeScale_debug_platform\Freescale_debug\Freescale_debug\obj\Release\Freescale_debug.csproj.ResolveComReference.cache
+F:\Project_Compotition\6.MyFreescal_10th\FreeScale_debug_platform\Freescale_debug\Freescale_debug\bin\Release\Freescale_debug.exe
+F:\Project_Compotition\6.MyFreescal_10th\FreeScale_debug_platform\Freescale_debug\Freescale_debug\bin\Release\Leomon.dll
+F:\Project_Compotition\6.MyFreescal_10th\FreeScale_debug_platform\Freescale_debug\Freescale_debug\bin\Release\ZedGraph.dll
+F:\Project_Compotition\6.MyFreescal_10th\FreeScale_debug_platform\Freescale_debug\Freescale_debug\obj\Release\Freescale_debug.csprojResolveAssemblyReference.cache
+F:\Project_Compotition\6.MyFreescal_10th\FreeScale_debug_platform\Freescale_debug\Freescale_debug\obj\Release\Freescale_debug.Form1.resources
+F:\Project_Compotition\6.MyFreescal_10th\FreeScale_debug_platform\Freescale_debug\Freescale_debug\obj\Release\Freescale_debug.LoadingPage.resources
+F:\Project_Compotition\6.MyFreescal_10th\FreeScale_debug_platform\Freescale_debug\Freescale_debug\obj\Release\Freescale_debug.Properties.Resources.resources
+F:\Project_Compotition\6.MyFreescal_10th\FreeScale_debug_platform\Freescale_debug\Freescale_debug\obj\Release\Freescale_debug.ZedGraph_SingleWindow.resources
+F:\Project_Compotition\6.MyFreescal_10th\FreeScale_debug_platform\Freescale_debug\Freescale_debug\obj\Release\Freescale_debug.csproj.GenerateResource.Cache
+F:\Project_Compotition\6.MyFreescal_10th\FreeScale_debug_platform\Freescale_debug\Freescale_debug\obj\Release\Freescale_debug.exe

@@ -1,0 +1,249 @@
+﻿using System;
+using System.Windows.Forms;
+using leomon;
+
+namespace Freescale_debug
+{
+    //class Configuration
+    public partial class Form1 : Form
+    {
+        //想一想，需要保存的内容有哪些呢？
+        //1、串口的相关配置信息
+        //2、文本框中的内容。
+        //3、没了。。。^_^
+        private bool _firstTime = true;
+        private bool _hasStartSend;
+        private void SaveConfig(string fileName)
+        {
+            Editor editor = new Editor();
+            if (hasPorts)
+            {
+                //保存选中的端口
+                editor.PutInt32("selectedPort", comboBox_port.SelectedIndex);
+                //保存设置的波特率
+                editor.PutInt32("baudRate", comboBox_baudrate.SelectedIndex);
+                //保存设置的校验方式
+                editor.PutInt32("parity", comboBox_parity.SelectedIndex);
+                //保存设置的数据位
+                editor.PutInt32("dataBits", comboBox_databit.SelectedIndex);
+                //保存设置的停止位
+                editor.PutInt32("stopBits", comboBox_stopbit.SelectedIndex);
+                //保存自动发送数据时间间隔
+                editor.PutInt32("intervalTime", Convert.ToInt32(textBox_sendPeriod.Text));
+                //保存接收方式
+                editor.PutBoolean("acceptChar", checkBox_receiveHex.Checked);
+                //editor.PutBoolean("acceptHex", this.acceptHexRadioButton.Checked);
+                //保存发送方式
+                //editor.PutBoolean("sendChar", this.sendCharRadioButton.Checked);
+                //editor.PutBoolean("sendHex", this.sendHexRadioButton.Checked);
+                //保存标志变量，即是否在接收框中显示信息。
+                editor.PutBoolean("showInfo", showInfo);
+            }
+
+            //保存PID参数选择情况
+            editor.PutBoolean("radioButton_carType", radioButton_FourWheel.Checked);
+
+            if (radioButton_FourWheel.Checked) //四轮车PID
+            {
+                //舵机PID参数
+                editor.PutString("Steer_P", textBox_Steer_P.Text);
+                editor.PutString("Steer_I", textBox_Steer_I.Text);
+                editor.PutString("Steer_D", textBox_Steer_D.Text);
+
+                //电机PID参数
+                editor.PutString("Motor_P", textBox_Motor_P.Text);
+                editor.PutString("Motor_I", textBox_Motor_I.Text);
+                editor.PutString("Motor_D", textBox_Motor_D.Text);
+            }
+            else if (radioButton_BalanceCar.Checked) //直立车PID参数的获取
+            {
+                //直立PID
+                editor.PutString("Stand_P", textBox_Stand_P.Text);
+                editor.PutString("Stand_I", textBox_Stand_I.Text);
+                editor.PutString("Stand_D", textBox_Stand_D.Text);
+
+                //速度PID
+                editor.PutString("Speed_P", textBox_Speed_P.Text);
+                editor.PutString("Speed_I", textBox_Speed_I.Text);
+                editor.PutString("Speed_D", textBox_Speed_D.Text);
+
+                //方向PID
+                editor.PutString("Direction_P", textBox_Direction_P.Text);
+                editor.PutString("Direction_I", textBox_Direction_I.Text);
+                editor.PutString("Direction_D", textBox_Direction_D.Text);
+            }
+            //保存自定义参数的数量
+            editor.PutInt32("DIY_Number", Convert.ToInt32(textBox_DIY_Number.Text));
+
+            //保存自定义参数的其他信息
+            int total = Convert.ToInt32(textBox_DIY_Number.Text);
+            for (int i = 0; i < total; i++)
+            {
+                CheckBox checkboxSelect = new CheckBox();
+                checkboxSelect = (CheckBox)panel_add_DIYControls.Controls.Find("checkBox_Def" + Convert.ToString(i + 1), true)[0];
+
+                TextBox[] txtBox = new TextBox[2];  //用控件数组来定义每一行的TextBox,总共3个TextBox
+                txtBox[0] = (TextBox)panel_add_DIYControls.Controls.Find("txtName" + Convert.ToString(i + 1), true)[0];
+                txtBox[1] = (TextBox)panel_add_DIYControls.Controls.Find("txtValue" + Convert.ToString(i + 1), true)[0];
+
+                Button btn = new Button();
+                btn = (Button)panel_add_DIYControls.Controls.Find("buttonSubmit" + Convert.ToString(i + 1), true)[0];
+
+                string tmpMessageStand = txtBox[1].Text;
+
+                //状态栏选择情况
+                string checkState = string.Format("DIY_CheckState{0}", i + 1);
+                editor.PutBoolean(checkState, checkboxSelect.Checked);
+
+                //自己定义的变量名称
+                string txtName_DIY = string.Format("DIY_TextName{0}", i + 1);
+                editor.PutString(txtName_DIY, txtBox[0].Text);
+
+                //自定义参数的数值
+                string txtValue_DIY = string.Format("DIY_TextValue{0}", i + 1);
+                editor.PutString(txtValue_DIY, txtBox[1].Text);
+
+                string button_DIY = string.Format("buttonSubmit{0}", i + 1);
+                editor.PutString(button_DIY, btn.Text);
+            }
+
+            //保存实时变量数量
+            editor.PutString("Electricity_Num",textBox_Electricity_Number.Text);
+
+            //保存实时变量的其他信息
+            total = Convert.ToInt32(textBox_Electricity_Number.Text);
+            for (int i = 0; i < total; i++)
+            {
+                TextBox[] txtBox = new TextBox[2];  //用控件数组来定义每一行的TextBox,总共2个TextBox
+                txtBox[0] = (TextBox)panel_Electricity.Controls.Find("txtElectName" + Convert.ToString(i + 1), true)[0];
+                txtBox[1] = (TextBox)panel_Electricity.Controls.Find("txtElectValue" + Convert.ToString(i + 1), true)[0];
+
+                //变量名称
+                string txtNameElect = string.Format("textElectName{0}", i + 1);
+                editor.PutString(txtNameElect, txtBox[0].Text);
+
+                //参数的数值
+                string txtValueElect = string.Format("txtElectValue{0}", i + 1);
+                editor.PutString(txtValueElect, txtBox[1].Text);
+            }
+
+            //保存虚拟示波器的变量情况
+            int totalScope = ScopeNumber;
+            for (int i = 0; i < totalScope; i++)
+            {
+                CheckBox checkDrawing = new CheckBox();
+                checkDrawing = (CheckBox)panel_Scope.Controls.Find("checkBox_Def" + Convert.ToString(i + 1), true)[0];
+
+                TextBox txtBox = new TextBox();  //用控件数组来定义每一行的TextBox,总共3个TextBox
+                txtBox = (TextBox)panel_Scope.Controls.Find("txtName" + Convert.ToString(i + 1), true)[0];
+
+                //状态栏选择情况
+                string checkState = string.Format("SCOPE_CheckState{0}", i + 1);
+                editor.PutBoolean(checkState, checkDrawing.Checked);
+
+                //自己定义的变量名称
+                string txtName_DIY = string.Format("SCOPE_TextName{0}", i + 1);
+                editor.PutString(txtName_DIY, txtBox.Text);
+            }
+            //=================================================================
+            SharedPreferences sp = new SharedPreferences(fileName);
+            //记得调用该方法将上述内容一次写入并保存。
+            sp.Save(editor);
+
+        }
+
+        private void LoadConfig(string fileName)
+        {
+            SharedPreferences sp = new SharedPreferences(fileName);
+            if (sp.ConfigFileExists)
+            {
+                //读取选中的端口
+                if (hasPorts)
+                {
+                    //判断当前端口的数量，小于则表示是OK。
+                    if (sp.GetInt32("selectedPort", 0) < comboBox_port.Items.Count)
+                        comboBox_port.SelectedIndex = sp.GetInt32("selectedPort", 0);
+                    else
+                    {
+                        comboBox_port.SelectedIndex = 0;
+                    }
+                }
+                //读取设置的波特率
+                comboBox_baudrate.SelectedIndex = sp.GetInt32("baudRate", 0);
+                //读取设置的校验方式
+                comboBox_parity.SelectedIndex = sp.GetInt32("parity", 0);
+                //读取设置的数据位
+                comboBox_databit.SelectedIndex = sp.GetInt32("dataBits", 0);
+                //读取设置的停止位
+                comboBox_stopbit.SelectedIndex = sp.GetInt32("stopBits", 0);
+                //读取自动发送数据时间间隔
+                textBox_sendPeriod.Text = sp.GetInt32("intervalTime", 500).ToString();
+                //读取接收方式
+                checkBox_receiveHex.Checked = sp.GetBoolean("acceptChar", true);
+                //acceptHexRadioButton.Checked = sp.GetBoolean("acceptHex", false);
+                //读取发送方式
+                //sendCharRadioButton.Checked = sp.GetBoolean("sendChar", true);
+                //sendHexRadioButton.Checked = sp.GetBoolean("sendHex", true);
+                //读取标志变量，即是否在接收框中显示信息。
+                showInfo = sp.GetBoolean("showInfo", true);
+                if (showInfo)
+                {
+                    button_receivepause.Text = "暂停接收显示";
+                }
+                else
+                {
+                    button_receivepause.Text = "继续接收显示";
+                }
+
+                //保存的车型
+                radioButton_FourWheel.Checked = sp.GetBoolean("radioButton_carType", true);
+                if (!radioButton_FourWheel.Checked)
+                    radioButton_BalanceCar.Checked = true;
+
+                if (radioButton_FourWheel.Checked) //四轮车PID
+                {
+                    //舵机PID参数
+                    textBox_Steer_P.Text = sp.GetString("Steer_P", "1.0");
+                    textBox_Steer_I.Text = sp.GetString("Steer_I", "1.0");
+                    textBox_Steer_D.Text = sp.GetString("Steer_D", "1.0");
+
+                    //电机PID参数
+                    textBox_Motor_P.Text = sp.GetString("Motor_P", "1.0");
+                    textBox_Motor_I.Text = sp.GetString("Motor_I", "1.0");
+                    textBox_Motor_D.Text = sp.GetString("Motor_D", "1.0");
+                }
+                else if (radioButton_BalanceCar.Checked) //直立车PID参数的获取
+                {
+                    //直立PID
+                    textBox_Stand_P.Text = sp.GetString("Stand_P", "1.0");
+                    textBox_Stand_I.Text = sp.GetString("Stand_I", "1.0");
+                    textBox_Stand_D.Text = sp.GetString("Stand_D", "1.0");
+
+                    //速度PID
+                    textBox_Speed_P.Text = sp.GetString("Speed_P", "1.0");
+                    textBox_Speed_I.Text = sp.GetString("Speed_I", "1.0");
+                    textBox_Speed_D.Text = sp.GetString("Speed_D", "1.0");
+
+                    //方向PID
+                    textBox_Direction_P.Text = sp.GetString("Direction_P", "1.0");
+                    textBox_Direction_I.Text = sp.GetString("Direction_I", "1.0");
+                    textBox_Direction_D.Text = sp.GetString("Direction_D", "1.0");
+                }
+                //保存的DIY参数数量
+                textBox_DIY_Number.Text = sp.GetInt32("DIY_Number", 0).ToString();
+
+                //读取上一次设定的电感数量
+                textBox_Electricity_Number.Text = sp.GetString("Electricity_Num", "1");
+
+                textBox_receive.Clear();
+                _firstTime = false;
+            }
+            else
+            {
+                _firstTime = true;
+                //载入默认设置
+                ResetToDefaultSettings();
+            }
+        }
+    }
+}
