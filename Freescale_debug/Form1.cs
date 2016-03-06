@@ -25,6 +25,7 @@ namespace Freescale_debug
 
         //ZedGraph
         private const int ScopeNumber = 8; //示波器能画曲线的数量
+        private ZedGrpahName[] zedGrpahNames = new ZedGrpahName[ScopeNumber];
 
         private readonly Color[] _colorLine =
         {
@@ -32,17 +33,12 @@ namespace Freescale_debug
             Color.CornflowerBlue, Color.Red, Color.Yellow, Color.Gray
         };
 
-        private readonly int[] _countZedgraph = new int[ScopeNumber];
-        private readonly PointPairList[] _listZed = new PointPairList[ScopeNumber];
         //发送串口数据的队列，直到收到有效数据为止
         private readonly Queue _queueEchoControl = new Queue(); //根据这个来判断是不是要进行重发
         private readonly List<int> _recieveBuff = new List<int>();
         private const string SavefileName = "串口助手配置.xml";
-        private readonly bool[] _singleWindowShowed = new bool[ScopeNumber];
-        private readonly double[] _valueZed = new double[ScopeNumber];
         private readonly double _xminScale = 0;
-        private readonly List<double>[] _zedListX = new List<double>[ScopeNumber];
-        private readonly List<double>[] _zedListY = new List<double>[ScopeNumber];
+
         //SerialPort Flags
         private bool _closing; //是否正在关闭串口，执行Application.DoEvents，并阻止再次
         private Bitmap _bitmapOld;
@@ -53,36 +49,20 @@ namespace Freescale_debug
         private bool _dequeueFirstTime = true;
         private double _directionDOld;
         private double _directionIOld;
-        //方向PID
-        private double _directionPOld;
+
         private bool _isLoadHistory;
         //自定义参数的一些变量
         private bool _isLoadingDiyok = false;
         private bool _isReading;
         private bool _listening; //是否没有执行完invoke相关操作  
-        private double motor_D_old;
-        private double motor_I_old;
-        //电机PID参数
-        private double motor_P_old;
+
         private ReceivedDataType myReceivedDataType = ReceivedDataType.CharType;
         private SendDataType mySendDataType = SendDataType.CharType;
         private bool needWrite = false;
         private string RecievedStringAdd = ""; //接收到的数据
         private int retryCount;
         private bool showInfo = true;
-        private double speed_D_old;
-        private double speed_I_old;
-        //速度PID
-        private double speed_P_old;
-        private double stand_D_old;
-        private double stand_I_old;
-        //直立PID
-        private double stand_P_old;
-        private double steer_D_old;
-        private double steer_I_old;
-        //PID旧的值
-        //舵机PID参数
-        private double steer_P_old;
+
         private StreamWriter sw;
         private GetEchoForm tmpSendHandle = new GetEchoForm();
         private int totalReceivedBytes;
@@ -177,11 +157,6 @@ namespace Freescale_debug
 
             Init_TablePagePIDSettings();
             Init_pane_Scope();
-            for (var i = 0; i < ScopeNumber; i++)
-            {
-                _zedListX[i] = new List<double>();
-                _zedListY[i] = new List<double>();
-            }
             InitzedGraph();
 
             Init_DIY_DynamicControls(Convert.ToInt16(textBox_DIY_Number.Text));
@@ -588,35 +563,6 @@ namespace Freescale_debug
                                     }
                                 }
 
-                                ////将采集的值保存到txt
-                                //FileStream fs = new FileStream("CCD_Data.txt", FileMode.Append, FileAccess.Write);
-                                //StreamWriter sw_ccd = new StreamWriter(fs, Encoding.Default);
-
-                                ////ccd参数
-                                //for (int i = 0; i < ccdData.Length; i++)
-                                //{
-                                //    sw_ccd.Write("{0} ", greyValue.ElementAt(i));
-                                //}
-                                //sw_ccd.WriteLine("\r\n");
-
-                                //sw_ccd.Close();
-                                //fs.Close();
-
-                                ////算法处理后的图像
-                                ////int threSold = Otsu(greyValue);
-                                //int threSold = Average_ccd(greyValue);
-                                //label_CCD_Thresold.Text = @"阈值" + threSold.ToString() + CCD_FindBoard(greyValue);
-                                //for (int i = 0; i < greyValue.Count; i++)
-                                //{
-                                //    if (greyValue.ElementAt(i) > threSold)
-                                //        greyValue[i] = 255;
-                                //    else
-                                //        greyValue[i]= 0;
-                                //}
-                                //Bitmap bitmap_algrithm = new Bitmap(ccdData.Length, pictureBox_CCD_Actual.Height);
-                                //CCD_DrawActual(bitmap_algrithm, greyValue);
-                                //pictureBox_CCD_deal.Image = bitmap_algrithm; //在控件上显示图片
-
                                 //End of 实时图像显示====================================================================
                                 //显示轨迹部分
 
@@ -680,8 +626,8 @@ namespace Freescale_debug
                                 _isLoadHistory = false;
                                 for (var i = 0; i < ScopeNumber; i++) //首先清除所有的曲线数据
                                 {
-                                    _listZed[i].RemoveRange(0, _listZed[i].Count);
-                                    _countZedgraph[i] = -1;
+                                    zedGrpahNames[i].listZed.RemoveRange(0, zedGrpahNames[i].listZed.Count);
+                                    zedGrpahNames[i].x = -1;
                                 }
                             }
 
@@ -717,45 +663,34 @@ namespace Freescale_debug
                                     //ZedGraph绘图
                                     var j = Convert.ToInt16(splitted_Message.ElementAt(2 + 4*k)) - 1;
                                     var value = Convert.ToDouble(splitted_Message.ElementAt(3 + 4*k))/1000;
-                                    _valueZed[i] = value;
+                                    zedGrpahNames[i].ValueZed = value;
 
-                                    if ((_xmaxScale - _countZedgraph[j]) < (_xmaxScale/5)) //自动改变坐标轴范围
+                                    if ((_xmaxScale - zedGrpahNames[j].x) < (_xmaxScale / 5)) //自动改变坐标轴范围
                                     {
                                         _xmaxScale += _xmaxScale/5;
                                         zedGraph_local.GraphPane.XAxis.Scale.Max = _xmaxScale;
                                     }
-                                    if (_ymaxScale - _valueZed[i] < _ymaxScale/5) //自动改变坐标轴范围
+                                    if (_ymaxScale - zedGrpahNames[i].ValueZed < _ymaxScale / 5) //自动改变坐标轴范围
                                     {
                                         //YmaxScale += YmaxScale/5;
-                                        _ymaxScale += -_ymaxScale + 1.3*_valueZed[i];
+                                        _ymaxScale += -_ymaxScale + 1.3 * zedGrpahNames[i].ValueZed;
                                         zedGraph_local.GraphPane.YAxis.Scale.Max = _ymaxScale;
                                     }
-                                    if (_yminScale - _valueZed[i] > _yminScale/5) //自动改变坐标轴范围
+                                    if (_yminScale - zedGrpahNames[i].ValueZed > _yminScale / 5) //自动改变坐标轴范围
                                     {
                                         _yminScale += _yminScale/5;
                                         zedGraph_local.GraphPane.YAxis.Scale.Min = _yminScale;
                                     }
 
-                                    _countZedgraph[j] += 1;
+                                    zedGrpahNames[j].x += 1;
 
-                                    _listZed[j].Add(Convert.ToDouble(_countZedgraph[j]), value);
-                                    _zedListX[i].Add(Convert.ToDouble(_countZedgraph[j]));
-                                    _zedListY[i].Add(value);
-                                    //MessageBox.Show("In Test Unpakage");
+                                    zedGrpahNames[j].listZed.Add(Convert.ToDouble(zedGrpahNames[j].x), value);
+                                    zedGrpahNames[i].zedPoint.ZedListX.Add(Convert.ToDouble(zedGrpahNames[j].x));
+                                    zedGrpahNames[i].zedPoint.ZedListY.Add(value);
 
-                                    if (_singleWindowShowed[i])
-                                        coOb[i].CallEvent(_countZedgraph[j], value);
-                                    //string curve = string.Format("curve {0}", i);
-                                    //zedGraph_local.GraphPane.AddCurve(curve, listZed[j], color_line[i], 
-                                    //    SymbolType.None);
+                                    if (zedGrpahNames[j].isSingleWindowShowed)
+                                        coOb[i].CallEvent(zedGrpahNames[j].x, value);
                                 }
-                            }
-
-                            if (hasChecked_Item)
-                            {
-                                //zedGraph_local.AxisChange();
-                                ////z1.Invalidate();
-                                //zedGraph_local.Refresh();
                             }
                         }
                             #endregion
@@ -984,23 +919,6 @@ namespace Freescale_debug
                 mySerialPort.StopBits = StopBits.One;
                 comboBox_stopbit.SelectedItem = "1";
             }
-
-            //try
-            //{
-            //    //mySerialPort.ReadTimeout = (int)intervalTimeNumericUpDown.Value;
-            //    //mySerialPort.WriteTimeout = (int)intervalTimeNumericUpDown.Value;
-            //}
-            //catch(Exception ee)
-            //{
-            //    mySerialPort.ReadTimeout = 500;
-            //    mySerialPort.WriteTimeout = 500;
-            //    MessageBox.Show(ee.Message);
-            //}
-            //更新状态栏的显示
-            //statusDisplayToolStripStatusLabel.Text = string.Format(
-            //    "当前打开的端口 {0}，波特率 {1}，奇偶校验 {2}， 数据位 {3}，停止位 {4}",
-            //    portNameComboBox.SelectedItem, baudRateComboBox.SelectedItem, parityComboBox.SelectedItem,
-            //    dataBitsComboBox.SelectedItem, stopBitsComboBox.SelectedItem);
         }
 
         private StopBits GetSelectedStopBits()
@@ -1030,18 +948,6 @@ namespace Freescale_debug
             return stopBits;
         }
 
-        private void ResetToDefaultSettings()
-        {
-            //默认波特率
-            comboBox_baudrate.SelectedItem = "9600";
-            //默认不校验
-            comboBox_parity.SelectedIndex = 0;
-            //默认数据位设置为8位
-            comboBox_databit.SelectedIndex = 0;
-            //默认停止位设置为1位
-            comboBox_stopbit.SelectedIndex = 0;
-        }
-
         private int GetSelectedBaudRate()
         {
             var baudRate = 0;
@@ -1065,7 +971,8 @@ namespace Freescale_debug
         private Parity GetSelectedParity()
         {
             var parity = Parity.None;
-            switch (comboBox_parity.SelectedItem.ToString())
+            string selectedParityWay = comboBox_parity.SelectedItem.ToString();
+            switch (selectedParityWay)
             {
                 case "偶校验(Even)":
                 {
@@ -1250,8 +1157,6 @@ namespace Freescale_debug
                     _autoSend = true;
                     checkBox_sendAuto.Enabled = false;
                     button_sendmessage.Text = "自动发送中";
-                    _hasStartSend = true;
-                    //SetSerialPortPropertiesBeforeSending();
 
                     timer_autoSend.Enabled = true;
                     timer_autoSend.Interval = Convert.ToInt32(textBox_sendPeriod.Text);
@@ -1262,8 +1167,6 @@ namespace Freescale_debug
                     _autoSend = false;
                     checkBox_sendAuto.Enabled = true;
                     button_sendmessage.Text = "发送数据";
-                    //initialText = string.Empty;
-                    _hasStartSend = false;
                     try
                     {
                         SerialPortSendChar(textBox_send.Text);
@@ -1427,153 +1330,6 @@ namespace Freescale_debug
 
             return result;
         }
-
-        private void button_ModifyPID_Click(object sender, EventArgs e)
-        {
-            if (radioButton_FourWheel.Checked) //四轮车PID
-            {
-                //舵机PID参数
-                var steer_P = (int) (Convert.ToDouble(textBox_Steer_P.Text)*1000);
-                var steer_I = (int) (Convert.ToDouble(textBox_Steer_I.Text)*1000);
-                var steer_D = (int) (Convert.ToDouble(textBox_Steer_D.Text)*1000);
-
-                //电机PID参数
-                var motor_P = (int) (Convert.ToDouble(textBox_Motor_P.Text)*1000);
-                var motor_I = (int) (Convert.ToDouble(textBox_Motor_I.Text)*1000);
-                var motor_D = (int) (Convert.ToDouble(textBox_Motor_D.Text)*1000);
-
-                var tmpMessageSteer = "P" + steer_P + "I" + steer_I + "D" + steer_D;
-                var tmpMessageMotor = "P" + motor_P + "I" + motor_I + "D" + motor_D;
-
-                try
-                {
-                    var NeedSend = "";
-                    var head = "#";
-                    var end = "$";
-
-                    //PID值需要连续发送
-                    //以下是其处理方式
-                    //舵机PID
-                    if (Math.Abs(steer_P_old - steer_P) > 0 || //有变化才发送
-                        Math.Abs(steer_I_old - steer_I) > 0 ||
-                        Math.Abs(steer_D_old - steer_D) > 0)
-                    {
-                        //mySerialPort.Write(FormPackage(1, 1, tmpMessageSteer));
-                        NeedSend += FormPackage_NOHead_NOEnd(1, 1, tmpMessageSteer);
-                        steer_P_old = steer_P;
-                        steer_I_old = steer_I;
-                        steer_D_old = steer_D;
-                    }
-
-                    //电机PID
-                    if (Math.Abs(motor_P_old - motor_P) > 0 || //有变化才发送
-                        Math.Abs(motor_I_old - motor_I) > 0 ||
-                        Math.Abs(motor_D_old - motor_D) > 0)
-                    {
-                        //mySerialPort.Write(FormPackage(1, 2, tmpMessageMotor));
-                        NeedSend += FormPackage_NOHead_NOEnd(1, 2, tmpMessageSteer);
-                        motor_P_old = motor_P;
-                        motor_I_old = motor_I;
-                        motor_D_old = motor_D;
-                    }
-
-                    if (NeedSend.Length > 0)
-                    {
-                        NeedSend = head + NeedSend + end;
-                        mySerialPort.Write(NeedSend);
-
-                        var tmpHandle = new GetEchoForm(0, NeedSend);
-                        _queueEchoControl.Enqueue(tmpHandle);
-                        timer_Send2GetEcho.Start();
-                    }
-                }
-                catch (Exception ee)
-                {
-                    MessageBox.Show(ee.Message);
-                }
-            }
-            else if (radioButton_BalanceCar.Checked) //直立车PID参数的获取
-            {
-                //直立PID
-                var stand_P = (int) (Convert.ToDouble(textBox_Stand_P.Text)*1000);
-                var stand_I = (int) (Convert.ToDouble(textBox_Stand_I.Text)*1000);
-                var stand_D = (int) (Convert.ToDouble(textBox_Stand_D.Text)*1000);
-
-                //速度PID
-                var speed_P = (int) (Convert.ToDouble(textBox_Speed_P.Text)*1000);
-                var speed_I = (int) (Convert.ToDouble(textBox_Speed_I.Text)*1000);
-                var speed_D = (int) (Convert.ToDouble(textBox_Speed_D.Text)*1000);
-
-                //方向PID
-                var direction_P = (int) (Convert.ToDouble(textBox_Direction_P.Text)*1000);
-                var direction_I = (int) (Convert.ToDouble(textBox_Direction_I.Text)*1000);
-                var direction_D = (int) (Convert.ToDouble(textBox_Direction_D.Text)*1000);
-
-                var tmpMessageStand = "P" + stand_P + "I" + stand_I + "D" + stand_D;
-                var tmpMessageSpeed = "P" + speed_P + "I" + speed_I + "D" + speed_D;
-                var tmpMessageDirection = "P" + direction_P + "I" + direction_I + "D" + direction_D;
-
-                try
-                {
-                    var NeedSend = "";
-                    var head = "#";
-                    var end = "$";
-                    //直立PID
-                    if (Math.Abs(stand_P_old - stand_P) > 0 || //有变化才发送
-                        Math.Abs(stand_I_old - stand_I) > 0 ||
-                        Math.Abs(stand_D_old - stand_D) > 0)
-                    {
-                        //mySerialPort.Write(FormPackage(1, 3, tmpMessageStand));
-                        NeedSend += FormPackage_NOHead_NOEnd(1, 3, tmpMessageStand);
-                        stand_P_old = stand_P;
-                        stand_I_old = stand_I;
-                        stand_D_old = stand_D;
-                    }
-
-                    //速度PID
-                    if (Math.Abs(speed_P_old - speed_P) > 0 ||
-                        Math.Abs(speed_I_old - speed_I) > 0 ||
-                        Math.Abs(speed_D_old - speed_D) > 0)
-                    {
-                        //mySerialPort.Write(FormPackage(1, 4, tmpMessageSpeed));
-                        NeedSend += FormPackage_NOHead_NOEnd(1, 4, tmpMessageSpeed);
-                        speed_P_old = speed_P;
-                        speed_I_old = speed_I;
-                        speed_D_old = speed_D;
-                    }
-
-                    //方向PID
-                    if (Math.Abs(_directionPOld - direction_P) > 0 ||
-                        Math.Abs(_directionIOld - direction_I) > 0 ||
-                        Math.Abs(_directionDOld - direction_D) > 0)
-                    {
-                        //mySerialPort.Write(FormPackage(1, 5, tmpMessageDirection));
-                        NeedSend += FormPackage_NOHead_NOEnd(1, 5, tmpMessageDirection);
-                        _directionPOld = direction_P;
-                        _directionIOld = direction_I;
-                        _directionDOld = direction_D;
-                    }
-                    if (NeedSend.Length > 0)
-                    {
-                        NeedSend = head + NeedSend + end;
-                        mySerialPort.Write(NeedSend);
-
-                        var tmpHandle = new GetEchoForm(0, NeedSend);
-                        _queueEchoControl.Enqueue(tmpHandle);
-                        timer_Send2GetEcho.Start();
-                    }
-                }
-                catch (Exception ee)
-                {
-                    MessageBox.Show(ee.Message);
-                }
-            }
-            else
-            {
-                MessageBox.Show(@"无有效车型信息！");
-            }
-        }
-
         private void button_ModifyPID_Steer_Click(object sender, EventArgs e)
         {
             //舵机PID参数
@@ -1713,6 +1469,7 @@ namespace Freescale_debug
                 MessageBox.Show(ee.Message);
             }
         }
+        private void Send
 
         #endregion
 
@@ -2397,20 +2154,20 @@ namespace Freescale_debug
 
             for (var i = 0; i < ScopeNumber; i++)
             {
-                _listZed[i] = new PointPairList();
+                zedGrpahNames[i] = new ZedGrpahName();
                 coOb[i] = new CallObject();
             }
 
             var sp = new SharedPreferences(SavefileName);
             for (var i = 0; i < ScopeNumber; i++)
             {
-                _listZed[i].Add(Convert.ToDouble(_countZedgraph[i]), 0);
+                zedGrpahNames[i].listZed.Add(Convert.ToDouble(zedGrpahNames[i].x), 0);
                 var curve = string.Format("波形{0}", i + 1);
 
                 //自己定义的变量名称
                 var txtName_DIY = string.Format("SCOPE_TextName{0}", i + 1);
                 var getName = sp.GetString(txtName_DIY, @"波形" + Convert.ToString(i + 1));
-                zedGraph_local.GraphPane.AddCurve(getName.Trim() != "" ? getName : curve, _listZed[i], _colorLine[i%8],
+                zedGraph_local.GraphPane.AddCurve(getName.Trim() != "" ? getName : curve, zedGrpahNames[i].listZed, _colorLine[i%8],
                     SymbolType.None);
             }
 
@@ -2521,9 +2278,11 @@ namespace Freescale_debug
 
                 if (!mySerialPort.IsOpen)
                 {
-                    for (var j = 0; j < _zedListX[id].Count; j++)
+                    for (var j = 0; j < zedGrpahNames[id].zedPoint.ZedListX.Count; j++)
                     {
-                        _listZed[id].Add(_zedListX[id].ElementAt(j), _zedListY[id].ElementAt(j));
+                        double x = zedGrpahNames[id].zedPoint.ZedListX.ElementAt(j);
+                        double y = zedGrpahNames[id].zedPoint.ZedListY.ElementAt(j);
+                        zedGrpahNames[id].listZed.Add(x, y);
                     }
                 }
                 else
@@ -2538,7 +2297,8 @@ namespace Freescale_debug
 
                 if (!mySerialPort.IsOpen)
                 {
-                    _listZed[id].RemoveRange(0, _listZed[id].Count);
+                    int upLimit = zedGrpahNames[id].listZed.Count;
+                    zedGrpahNames[id].listZed.RemoveRange(0, upLimit);
                 }
             }
             //throw new NotImplementedException();
@@ -2554,9 +2314,9 @@ namespace Freescale_debug
 
             var id = GetNumber(btn_clk.Name) - 1;
 
-            if (_singleWindowShowed[id] == false)
+            if (zedGrpahNames[id].isSingleWindowShowed == false)
             {
-                _singleWindowShowed[id] = true;
+                zedGrpahNames[id].isSingleWindowShowed = true;
 
                 var txtBox = new TextBox(); //获取这个曲线的名称
                 txtBox = (TextBox) panel_Scope.Controls.Find("txtName" + Convert.ToString(id + 1), true)[0];
@@ -2594,8 +2354,8 @@ namespace Freescale_debug
         {
             for (var i = 0; i < ScopeNumber; i++) //首先清除所有的曲线数据
             {
-                _listZed[i].RemoveRange(0, _listZed[i].Count);
-                _countZedgraph[i] = -1;
+                zedGrpahNames[i].listZed.RemoveRange(0, zedGrpahNames[i].listZed.Count);
+                zedGrpahNames[i].x = -1;
             }
 
             zedGraph_local.GraphPane.XAxis.Scale.MinAuto = true;
@@ -2611,8 +2371,7 @@ namespace Freescale_debug
 
         private void SingleWindowClosed_RecvInfo(int id)
         {
-            //MessageBox.Show("recve: " + id.ToString());
-            _singleWindowShowed[id] = false;
+            zedGrpahNames[id].isSingleWindowShowed = false;
         }
 
         #endregion
@@ -2764,11 +2523,11 @@ namespace Freescale_debug
                     if (checkDrawing[i].Checked)
                     {
                         sw.WriteLine("ScopeLineOrder:{0}", i);
-                        sw.WriteLine("PointNumber:{0}", _listZed[i].Count);
+                        sw.WriteLine("PointNumber:{0}", zedGrpahNames[i].listZed.Count);
 
-                        for (var j = 0; j < _listZed[i].Count; j++)
+                        for (var j = 0; j < zedGrpahNames[i].listZed.Count; j++)
                         {
-                            sw.Write("{0}", _listZed[i].ElementAt(j).ToString().Replace(" ", ""));
+                            sw.Write("{0}", zedGrpahNames[i].listZed.ElementAt(j).ToString().Replace(" ", ""));
                         }
                         sw.WriteLine("");
                     }
@@ -2958,7 +2717,7 @@ namespace Freescale_debug
                     //Scope
                     for (var i = 0; i < ScopeNumber; i++) //首先清除所有的曲线数据
                     {
-                        _listZed[i].RemoveRange(0, _listZed[i].Count);
+                        zedGrpahNames[i].listZed.RemoveRange(0, zedGrpahNames[i].listZed.Count);
                     }
 
                     if (lines.ElementAt(countLine).Contains("ScopeLineNumber"))
@@ -2987,9 +2746,9 @@ namespace Freescale_debug
                                     {
                                         var x = Convert.ToDouble(xyPoint[j*2]);
                                         var y = Convert.ToDouble(xyPoint[j*2 + 1]);
-                                        _listZed[scopeOrder].Add(x, y);
-                                        _zedListX[scopeOrder].Add(x);
-                                        _zedListY[scopeOrder].Add(y);
+                                        zedGrpahNames[scopeOrder].listZed.Add(x, y);
+                                        zedGrpahNames[scopeOrder].zedPoint.ZedListX.Add(x);
+                                        zedGrpahNames[scopeOrder].zedPoint.ZedListY.Add(y);
                                     }
                                 }
                             }

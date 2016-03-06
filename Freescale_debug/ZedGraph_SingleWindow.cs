@@ -1,19 +1,18 @@
 ﻿using System;
 using System.Drawing;
+using System.Security.AccessControl;
 using System.Windows.Forms;
 using ZedGraph;
 
 namespace Freescale_debug
 {
-    //发送窗体关闭时的委托
     public delegate void SingleWindowClosedDelegate(int id);
     public partial class ZedGraphSingleWindow : Form
     {
-        //定义以上的委托
         public event SingleWindowClosedDelegate SingnleClosedEvent;
 
-        private readonly int _idNum;  //曲线号
-        private readonly string _curveName; //曲线命
+        private readonly int curveNumber;  //曲线号
+        private readonly string curveName; //曲线命
         private double _valueXStart;
         private int _zedWidth;
         private Boolean _pauseFlag;
@@ -21,20 +20,16 @@ namespace Freescale_debug
         private readonly Color[] _colorLine = {Color.Green, Color.DodgerBlue, Color.Brown, Color.Chartreuse,
                                              Color.CornflowerBlue, Color.Red, Color.Yellow, Color.Gray};
 
-        private PointPairList _listZed = new PointPairList();
+        private readonly PointPairList _listZed = new PointPairList();
 
         public ZedGraphSingleWindow(int id, CallObject coV, string name)
         {
             InitializeComponent();
 
             coV.ValueUpdatedEvent += co_UpdateCurveEvent;
-
-            //第几个曲线
-            _idNum = id;
-
-            //设置标题名称
-            _curveName = name;
-            Text = name + @"——曲线" + (_idNum+1) + @"——" + @"飞思卡尔调试平台 V1.1";
+            curveNumber = id;
+            curveName = name;
+            Text = name + @"——曲线" + (curveNumber+1) + @"——" + @"飞思卡尔调试平台 V1.1";
         }
 
         public override sealed string Text
@@ -50,9 +45,8 @@ namespace Freescale_debug
 
         private void ZedGraph_SingleWindow_FormClosed(object sender, FormClosedEventArgs e)
         {
-            //窗体在关闭时调用事件
             if (SingnleClosedEvent != null) 
-                SingnleClosedEvent(_idNum);
+                SingnleClosedEvent(curveNumber);
 
             DialogResult = DialogResult.OK;
         }
@@ -80,12 +74,6 @@ namespace Freescale_debug
             // Align the Y axis labels so they are flush to the axis
             myPane.YAxis.Scale.Align = AlignP.Inside;
 
-            // Manually set the axis range
-            //myPane.XAxis.Scale.Min = XminScale;
-            //myPane.XAxis.Scale.Max = XmaxScale;
-            //myPane.YAxis.Scale.Min = YminScale;
-            //myPane.YAxis.Scale.Max = YmaxScale;
-
             // Fill the axis background with a gradient
             myPane.Chart.Fill = new Fill(Color.White, Color.LightGray, 45.0f);
 
@@ -94,14 +82,16 @@ namespace Freescale_debug
             zedGraph_Single.IsShowPointValues = true;
             zedGraph_Single.PointValueEvent += MyPointValueHandler;
 
-            //listZed.Add(0, 0);
-            zedGraph_Single.GraphPane.AddCurve(_curveName, _listZed, _colorLine[_idNum],
+            zedGraph_Single.GraphPane.AddCurve(curveName, _listZed, _colorLine[curveNumber],
                 SymbolType.None);
 
-            // up the proper scrolling parameters
-            zedGraph_Single.AxisChange();
-            // Make sure the Graph gets redrawn
-            zedGraph_Single.Invalidate();
+            refleshZedPane(zedGraph_Single);
+        }
+
+        private void refleshZedPane(ZedGraphControl zedGraph)
+        {
+            zedGraph.AxisChange();
+            zedGraph.Invalidate();
         }
 
         /// <summary>
@@ -143,10 +133,8 @@ namespace Freescale_debug
                         _listZed.Add(_valueXStart++, y);
                     }
                 }
-                // up the proper scrolling parameters
-                zedGraph_Single.AxisChange();
-                // Make sure the Graph gets redrawn
-                zedGraph_Single.Invalidate();
+
+                refleshZedPane(zedGraph_Single);
             }
         }
 
@@ -160,18 +148,12 @@ namespace Freescale_debug
             zedGraph_Single.GraphPane.YAxis.Scale.MinAuto = true;
             zedGraph_Single.GraphPane.YAxis.Scale.MaxAuto = true;
 
-            // up the proper scrolling parameters
-            zedGraph_Single.AxisChange();
-            // Make sure the Graph gets redrawn
-            zedGraph_Single.Invalidate();
+            refleshZedPane(zedGraph_Single);
         }
 
         private void timer_fresh_Tick(object sender, EventArgs e)
         {
-            // up the proper scrolling parameters
-            zedGraph_Single.AxisChange();
-            // Make sure the Graph gets redrawn
-            zedGraph_Single.Invalidate();
+            refleshZedPane(zedGraph_Single);
         }
 
         private void textBox1_Leave(object sender, EventArgs e)

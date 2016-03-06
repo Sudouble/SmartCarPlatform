@@ -71,8 +71,10 @@
     <Compile Include="LoadingPage.Designer.cs">
       <DependentUpon>LoadingPage.cs</DependentUpon>
     </Compile>
+    <Compile Include="PID.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ZedGraphPoint.cs" />
     <Compile Include="ZedGraph_SingleWindow.cs">
       <SubType>Form</SubType>
     </Compile>

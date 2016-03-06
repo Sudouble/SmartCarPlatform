@@ -1,15 +1,36 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<!--配置文件为软件自动生成，非软件的编写者不要尝试修改。by leomon 2015/11/29-->
+<!--配置文件为软件自动生成，非软件的编写者不要尝试修改。by leomon 2016/3/6-->
 <configuration firstTimeRunning="false">
-  <Stand_P>12</Stand_P>
-  <Stand_I>0</Stand_I>
-  <Stand_D>3.5</Stand_D>
-  <Speed_P>15</Speed_P>
-  <Speed_I>20</Speed_I>
-  <Speed_D>6</Speed_D>
-  <Direction_P>2.45</Direction_P>
-  <Direction_I>0</Direction_I>
-  <Direction_D>12</Direction_D>
+  <Stand_P>1.0</Stand_P>
+  <Stand_I>1.0</Stand_I>
+  <Stand_D>1.0</Stand_D>
+  <Speed_P>1.0</Speed_P>
+  <Speed_I>1.0</Speed_I>
+  <Speed_D>1.0</Speed_D>
+  <Direction_P>1.0</Direction_P>
+  <Direction_I>1.0</Direction_I>
+  <Direction_D>1.0</Direction_D>
+  <Electricity_Num>10</Electricity_Num>
+  <textElectName1>实时变量1</textElectName1>
+  <txtElectValue1>1</txtElectValue1>
+  <textElectName2>实时变量2</textElectName2>
+  <txtElectValue2>0</txtElectValue2>
+  <textElectName3>实时变量3</textElectName3>
+  <txtElectValue3>1</txtElectValue3>
+  <textElectName4>实时变量4</textElectName4>
+  <txtElectValue4>1.00</txtElectValue4>
+  <textElectName5>实时变量5</textElectName5>
+  <txtElectValue5>1.00</txtElectValue5>
+  <textElectName6>实时变量6</textElectName6>
+  <txtElectValue6>1.00</txtElectValue6>
+  <textElectName7>实时变量7</textElectName7>
+  <txtElectValue7>1.00</txtElectValue7>
+  <textElectName8>实时变量8</textElectName8>
+  <txtElectValue8>1.00</txtElectValue8>
+  <textElectName9>实时变量9</textElectName9>
+  <txtElectValue9>1.00</txtElectValue9>
+  <textElectName10>实时变量10</textElectName10>
+  <txtElectValue10>1.00</txtElectValue10>
   <DIY_TextName1>l</DIY_TextName1>
   <DIY_TextValue1>60</DIY_TextValue1>
   <buttonSubmit1>修改</buttonSubmit1>
@@ -70,27 +91,6 @@
   <DIY_TextName20>数据20</DIY_TextName20>
   <DIY_TextValue20>1.00</DIY_TextValue20>
   <buttonSubmit20>修改</buttonSubmit20>
-  <Electricity_Num>10</Electricity_Num>
-  <textElectName1>实时变量1</textElectName1>
-  <txtElectValue1>1</txtElectValue1>
-  <textElectName2>实时变量2</textElectName2>
-  <txtElectValue2>0</txtElectValue2>
-  <textElectName3>实时变量3</textElectName3>
-  <txtElectValue3>1</txtElectValue3>
-  <textElectName4>实时变量4</textElectName4>
-  <txtElectValue4>1.00</txtElectValue4>
-  <textElectName5>实时变量5</textElectName5>
-  <txtElectValue5>1.00</txtElectValue5>
-  <textElectName6>实时变量6</textElectName6>
-  <txtElectValue6>1.00</txtElectValue6>
-  <textElectName7>实时变量7</textElectName7>
-  <txtElectValue7>1.00</txtElectValue7>
-  <textElectName8>实时变量8</textElectName8>
-  <txtElectValue8>1.00</txtElectValue8>
-  <textElectName9>实时变量9</textElectName9>
-  <txtElectValue9>1.00</txtElectValue9>
-  <textElectName10>实时变量10</textElectName10>
-  <txtElectValue10>1.00</txtElectValue10>
   <SCOPE_TextName1>角度</SCOPE_TextName1>
   <SCOPE_TextName2>加速度</SCOPE_TextName2>
   <SCOPE_TextName3>JIAO_PWM</SCOPE_TextName3>
@@ -99,8 +99,6 @@
   <SCOPE_TextName6>g_iCarRightPulse</SCOPE_TextName6>
   <SCOPE_TextName7>cenr</SCOPE_TextName7>
   <SCOPE_TextName8>cnt_black</SCOPE_TextName8>
-  <acceptChar>False</acceptChar>
-  <showInfo>True</showInfo>
   <radioButton_carType>False</radioButton_carType>
   <DIY_CheckState1>True</DIY_CheckState1>
   <DIY_CheckState2>True</DIY_CheckState2>
@@ -130,11 +128,5 @@
   <SCOPE_CheckState6>False</SCOPE_CheckState6>
   <SCOPE_CheckState7>False</SCOPE_CheckState7>
   <SCOPE_CheckState8>False</SCOPE_CheckState8>
-  <selectedPort>1</selectedPort>
-  <baudRate>11</baudRate>
-  <parity>0</parity>
-  <dataBits>0</dataBits>
-  <stopBits>0</stopBits>
-  <intervalTime>500</intervalTime>
   <DIY_Number>20</DIY_Number>
 </configuration>
