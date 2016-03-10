@@ -1469,7 +1469,7 @@ namespace Freescale_debug
                 MessageBox.Show(ee.Message);
             }
         }
-        private void Send
+        //private void Send
 
         #endregion
 
