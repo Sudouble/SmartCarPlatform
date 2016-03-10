@@ -71,44 +71,6 @@ namespace Freescale_debug
         private double _ymaxScale = 100;
         private double _yminScale = -10;
 
-        #region 5. 摄像头参数
-
-        private void Camera_DrawActual(Bitmap bitmap, string cameraData)
-        {
-            var bitmapData =
-                bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height),
-                    ImageLockMode.ReadWrite, bitmap.PixelFormat);
-
-            var bytesPerPixel = Image.GetPixelFormatSize(bitmap.PixelFormat)/8;
-            var byteCount = bitmapData.Stride*bitmap.Height;
-            var pixels = new byte[byteCount];
-            var ptrFirstPixel = bitmapData.Scan0;
-            Marshal.Copy(ptrFirstPixel, pixels, 0, pixels.Length);
-            var heightInPixels = bitmapData.Height;
-            var widthInBytes = bitmapData.Width*bytesPerPixel;
-
-            for (var y = 0; y < heightInPixels; y++)
-            {
-                var currentLine = y*bitmapData.Stride;
-
-                for (var x = 0; x < widthInBytes; x = x + bytesPerPixel)
-                {
-                    int grey = Convert.ToInt16(cameraData.ElementAt(Convert.ToInt16(y + x/4)));
-
-                    // calculate new pixel value
-                    pixels[currentLine + x] = (byte) grey;
-                    pixels[currentLine + x + 1] = (byte) grey;
-                    pixels[currentLine + x + 2] = (byte) grey;
-                    pixels[currentLine + x + 3] = 255;
-                }
-            }
-            // copy modified bytes back
-            Marshal.Copy(pixels, 0, ptrFirstPixel, pixels.Length);
-            bitmap.UnlockBits(bitmapData);
-        }
-
-        #endregion
-
         //线程的委托//使线程可以改变控件的值
         private delegate void DoWorkUiThreadDelegate(string recvString, List<int> recvByte);
 
@@ -135,17 +97,6 @@ namespace Freescale_debug
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            //检查可用端口
-            CheckAvailablePorts();
-            //开始更新时间和日期标签
-            //updateDateTimer.Start();
-            //载入配置信息
-            LoadConfig(SavefileName);
-
-            //button_DIY_NumConfirm_Click(sender, e);
-            //isLoadingDIYOK = true;
-
-
             _bitmapOld = new Bitmap(128, pictureBox_CCD_Path.Height);
             for (var i = 0; i < 128; i++)
             {
@@ -155,12 +106,15 @@ namespace Freescale_debug
                 }
             }
 
+            CheckAvailablePorts();
+            LoadConfig(SavefileName);
+
             Init_TablePagePIDSettings();
             Init_pane_Scope();
             InitzedGraph();
 
-            Init_DIY_DynamicControls(Convert.ToInt16(textBox_DIY_Number.Text));
-            InitElectricity(Convert.ToInt16(textBox_Electricity_Number.Text));
+            Init_DIY_DynamicControls();
+            InitElectricity();
 
             //LoadHistory();
         }
@@ -715,7 +669,6 @@ namespace Freescale_debug
                                 var valueD =
                                     (Convert.ToInt16(valuePID.Substring(indexD + 1))/1000.0).ToString(
                                         CultureInfo.InvariantCulture);
-
 
                                 if (type == 1)
                                 {
@@ -1330,6 +1283,18 @@ namespace Freescale_debug
 
             return result;
         }
+
+        private void SendMessageAndEnqueue(int father, int child, string messgae)
+        {
+            SaveConfig(SavefileName);
+            messgae = FormPackage(father, child, messgae);
+            mySerialPort.Write(messgae);
+
+            var tmpHandle = new GetEchoForm(0, messgae);
+            _queueEchoControl.Enqueue(tmpHandle);
+            timer_Send2GetEcho.Start();
+        }
+
         private void button_ModifyPID_Steer_Click(object sender, EventArgs e)
         {
             //舵机PID参数
@@ -1345,12 +1310,7 @@ namespace Freescale_debug
             try
             {
                 SaveConfig(SavefileName);
-                tmpMessageSteer = FormPackage(1, 1, tmpMessageSteer);
-                mySerialPort.Write(tmpMessageSteer);
-
-                var tmpHandle = new GetEchoForm(0, tmpMessageSteer);
-                _queueEchoControl.Enqueue(tmpHandle);
-                timer_Send2GetEcho.Start();
+                SendMessageAndEnqueue(1, 1, tmpMessageSteer);
             }
             catch (Exception ee)
             {
@@ -1373,12 +1333,7 @@ namespace Freescale_debug
             try
             {
                 SaveConfig(SavefileName);
-                tmpMessageSteer = FormPackage(1, 2, tmpMessageSteer);
-                mySerialPort.Write(tmpMessageSteer);
-
-                var tmpHandle = new GetEchoForm(0, tmpMessageSteer);
-                _queueEchoControl.Enqueue(tmpHandle);
-                timer_Send2GetEcho.Start();
+                SendMessageAndEnqueue(1, 2, tmpMessageSteer);
             }
             catch (Exception ee)
             {
@@ -1400,14 +1355,7 @@ namespace Freescale_debug
             try
             {
                 SaveConfig(SavefileName);
-                tmpMessageStand = FormPackage(1, 3, tmpMessageStand);
-                mySerialPort.Write(tmpMessageStand);
-
-                label28.Text = @"Loading....";
-
-                var tmpHandle = new GetEchoForm(0, tmpMessageStand);
-                _queueEchoControl.Enqueue(tmpHandle);
-                timer_Send2GetEcho.Start();
+                SendMessageAndEnqueue(1, 3, tmpMessageStand);
             }
             catch (Exception ee)
             {
@@ -1428,13 +1376,7 @@ namespace Freescale_debug
             try
             {
                 SaveConfig(SavefileName);
-                tmpMessageSpeed = FormPackage(1, 4, tmpMessageSpeed);
-                mySerialPort.Write(tmpMessageSpeed);
-
-                label28.Text = @"Loading....";
-                var tmpHandle = new GetEchoForm(0, tmpMessageSpeed);
-                _queueEchoControl.Enqueue(tmpHandle);
-                timer_Send2GetEcho.Start();
+                SendMessageAndEnqueue(1, 4, tmpMessageSpeed);
             }
             catch (Exception ee)
             {
@@ -1456,20 +1398,13 @@ namespace Freescale_debug
             try
             {
                 SaveConfig(SavefileName);
-                tmpMessageDirection = FormPackage(1, 5, tmpMessageDirection);
-                mySerialPort.Write(tmpMessageDirection);
-
-                label28.Text = @"Loading....";
-                var tmpHandle = new GetEchoForm(0, tmpMessageDirection);
-                _queueEchoControl.Enqueue(tmpHandle);
-                timer_Send2GetEcho.Start();
+                SendMessageAndEnqueue(1, 5, tmpMessageDirection);
             }
             catch (Exception ee)
             {
                 MessageBox.Show(ee.Message);
             }
         }
-        //private void Send
 
         #endregion
 
@@ -1477,146 +1412,116 @@ namespace Freescale_debug
 
         private void button_DIY_NumConfirm_Click(object sender, EventArgs e)
         {
-            if (textBox_DIY_Number.Text == "") //判断数量是否为空
+            DIYValidationCheck();
+            var result = MessageBox.Show(@"确认更改数量？", @"修改", MessageBoxButtons.OKCancel);
+            if (result == DialogResult.OK)
             {
-                MessageBox.Show(@"请输入需要的参数数量！", @"错误");
-                return;
+                DrawDIYPannel(false);
             }
-
-            //出现弹窗，说明确认更改数量
-            var dr = MessageBox.Show(@"确认更改数量？", @"修改", MessageBoxButtons.OKCancel);
-            if (dr == DialogResult.OK)
-            {
-                panel_add_DIYControls.AutoScroll = true; //为panel添加滚动条
-                panel_add_DIYControls.Controls.Clear(); //清空已有
-                var total = int.Parse(textBox_DIY_Number.Text); //题目总数
-                var txtBoxName = new TextBox();
-                var txtBoxValue = new TextBox();
-                var checkboxSelect = new CheckBox();
-                var submitButton = new Button();
-
-                for (var i = 0; i < total; i++)
-                {
-                    //是否启用的选项
-                    checkboxSelect = new CheckBox();
-                    checkboxSelect.Size = new Size(50, 20);
-                    checkboxSelect.Location = new Point(30 + 70*0, 30*(i + 1)); //textbox坐标
-                    checkboxSelect.Name = "checkBox_Def" + Convert.ToString(i + 1);
-                    checkboxSelect.Text = (i + 1).ToString();
-                    checkboxSelect.CheckedChanged += CheckboxSelectOnCheckedChanged;
-                    checkboxSelect.Checked = false;
-
-                    //名字
-                    txtBoxName = new TextBox();
-                    txtBoxName.Size = new Size(50, 50); //textbox大小                   
-                    txtBoxName.Location = new Point(30 + 70*1, 30*(i + 1)); //textbox坐标
-                    txtBoxName.Name = "txtName" + Convert.ToString(i + 1); //设定控件名称
-                    txtBoxName.TextAlign = HorizontalAlignment.Center;
-                    txtBoxName.Text = @"数据" + Convert.ToString(i + 1);
-                    txtBoxName.Enabled = false;
-
-                    //值
-                    txtBoxValue = new TextBox();
-                    txtBoxValue.Size = new Size(50, 50); //textbox大小                   
-                    txtBoxValue.Location = new Point(30 + 70*2, 30*(i + 1)); //textbox坐标
-                    txtBoxValue.Name = "txtValue" + Convert.ToString(i + 1); //设定控件名称
-                    txtBoxValue.Text = "1.00";
-                    txtBoxValue.TextAlign = HorizontalAlignment.Center;
-                    txtBoxValue.Enabled = false;
-
-                    //按钮
-                    submitButton = new Button();
-                    submitButton.Size = new Size(50, 20); //textbox大小                   
-                    submitButton.Location = new Point(30 + 70*3, 30*(i + 1)); //textbox坐标
-                    submitButton.Name = "buttonSubmit" + Convert.ToString(i + 1); //设定控件名称
-                    submitButton.Text = @"修改";
-                    submitButton.Click += SubmitButtonOnClick;
-                    submitButton.Enabled = false;
-
-                    panel_add_DIYControls.Controls.Add(checkboxSelect);
-                    panel_add_DIYControls.Controls.Add(txtBoxName); //把"名字"加入到panel中
-                    panel_add_DIYControls.Controls.Add(txtBoxValue); //把"值"加入到panel中
-                    panel_add_DIYControls.Controls.Add(submitButton);
-                }
-
-                SaveConfig(SavefileName);
-            }
+            SaveConfig(SavefileName);
         }
-
-        private void Init_DIY_DynamicControls(int number)
+        private void Init_DIY_DynamicControls()
         {
             var sp = new SharedPreferences(SavefileName);
             if (sp.ConfigFileExists)
             {
-                if (number < 1)
-                {
-                    MessageBox.Show(@"请输入需要的参数数量！", @"错误");
-                    return;
-                }
-                panel_add_DIYControls.AutoScroll = true; //为panel添加滚动条
-                panel_add_DIYControls.Controls.Clear(); //清空已有
-                var txtBoxName = new TextBox();
-                var txtBoxValue = new TextBox();
+                DIYValidationCheck();
+                DrawDIYPannel(true);
+            }
+        }
+
+        private void DrawDIYPannel(Boolean byInit)
+        {
+            panel_add_DIYControls.AutoScroll = true;
+            panel_add_DIYControls.Controls.Clear();
+            var total = int.Parse(textBox_DIY_Number.Text);
+
+            var sp = new SharedPreferences(SavefileName);
+            if (sp.ConfigFileExists)
+            {
+                AddControlsToPannel(sp, total, byInit);
+            }
+        }
+
+        private void DIYValidationCheck()
+        {
+            var total = int.Parse(textBox_DIY_Number.Text);
+            if (total < 1)
+            {
+                MessageBox.Show(@"请输入需要的参数数量！", @"错误");
+                return;
+            }
+        }
+
+        private void AddControlsToPannel(SharedPreferences sp, int number, Boolean byInit)
+        {
+            for (var i = 0; i < number; i++)
+            {
                 var checkboxSelect = new CheckBox();
-
-                var submitButton = new Button();
-
-                for (var i = 0; i < number; i++)
+                checkboxSelect.Size = new Size(50, 20);
+                checkboxSelect.Location = new Point(30 + 70 * 0, 30 * (i + 1));
+                checkboxSelect.Name = "checkBox_Def" + Convert.ToString(i + 1);
+                checkboxSelect.Text = (i + 1).ToString();
+                checkboxSelect.CheckedChanged += CheckboxSelectOnCheckedChanged;
+                if (byInit)
                 {
-                    //是否启用的选项
-                    checkboxSelect = new CheckBox();
-                    checkboxSelect.Size = new Size(50, 20);
-                    checkboxSelect.Location = new Point(30 + 70*0, 30*(i + 1)); //textbox坐标
-                    checkboxSelect.Name = "checkBox_Def" + Convert.ToString(i + 1);
-                    checkboxSelect.Text = (i + 1).ToString();
-                    //状态栏选择情况
                     var checkState = string.Format("DIY_CheckState{0}", i + 1);
                     checkboxSelect.Checked = sp.GetBoolean(checkState, true);
-                    checkboxSelect.CheckedChanged += CheckboxSelectOnCheckedChanged;
+                }
 
-
-                    //名字
-                    txtBoxName = new TextBox();
-                    txtBoxName.Size = new Size(50, 50); //textbox大小                   
-                    txtBoxName.Location = new Point(30 + 70*1, 30*(i + 1)); //textbox坐标
-                    txtBoxName.Name = "txtName" + Convert.ToString(i + 1); //设定控件名称
-                    txtBoxName.TextAlign = HorizontalAlignment.Center;
-                    //自己定义的变量名称
+                var txtBoxName = new TextBox();
+                txtBoxName.Size = new Size(50, 50); //textbox大小                   
+                txtBoxName.Location = new Point(30 + 70 * 1, 30 * (i + 1));
+                txtBoxName.Name = "txtName" + Convert.ToString(i + 1);
+                txtBoxName.TextAlign = HorizontalAlignment.Center;
+                txtBoxName.TextChanged += DIYTextboxNameChanged;
+                if (byInit)
+                {
                     var txtName_DIY = string.Format("DIY_TextName{0}", i + 1);
                     txtBoxName.Text = sp.GetString(txtName_DIY, "数据");
-                    txtBoxName.TextChanged += DIYTextboxNameChanged;
+                }
+                else
+                {
+                    txtBoxName.Enabled = false;
+                }
 
-                    //值
-                    txtBoxValue = new TextBox();
-                    txtBoxValue.Size = new Size(50, 50); //textbox大小                   
-                    txtBoxValue.Location = new Point(30 + 70*2, 30*(i + 1)); //textbox坐标
-                    txtBoxValue.Name = "txtValue" + Convert.ToString(i + 1); //设定控件名称
-                    //自定义参数的数值
+                var txtBoxValue = new TextBox();
+                txtBoxValue.Size = new Size(50, 50); //textbox大小                   
+                txtBoxValue.Location = new Point(30 + 70 * 2, 30 * (i + 1));
+                txtBoxValue.Name = "txtValue" + Convert.ToString(i + 1);
+                txtBoxValue.TextAlign = HorizontalAlignment.Center;
+                if (byInit)
+                {
                     var txtValue_DIY = string.Format("DIY_TextValue{0}", i + 1);
                     txtBoxValue.Text = sp.GetString(txtValue_DIY, "1.0");
-                    txtBoxValue.TextAlign = HorizontalAlignment.Center;
-
-                    //按钮
-                    submitButton = new Button();
-                    submitButton.Size = new Size(50, 20); //textbox大小                   
-                    submitButton.Location = new Point(30 + 70*3, 30*(i + 1)); //textbox坐标
-                    submitButton.Name = "buttonSubmit" + Convert.ToString(i + 1); //设定控件名称
-                    submitButton.Text = @"修改";
-                    submitButton.Click += SubmitButtonOnClick;
-                    //submitButton.Enabled = false;
-
-                    if (!checkboxSelect.Checked)
-                    {
-                        txtBoxName.Enabled = false;
-                        txtBoxValue.Enabled = false;
-                        submitButton.Enabled = false;
-                    }
-
-                    panel_add_DIYControls.Controls.Add(checkboxSelect);
-                    panel_add_DIYControls.Controls.Add(txtBoxName); //把"名字"加入到panel中
-                    panel_add_DIYControls.Controls.Add(txtBoxValue); //把"值"加入到panel中
-                    panel_add_DIYControls.Controls.Add(submitButton);
                 }
+                else
+                {
+                    txtBoxValue.Enabled = false;
+                }
+
+                var submitButton = new Button();
+                submitButton.Size = new Size(50, 20); //textbox大小                   
+                submitButton.Location = new Point(30 + 70 * 3, 30 * (i + 1));
+                submitButton.Name = "buttonSubmit" + Convert.ToString(i + 1);
+                submitButton.Text = @"修改";
+                submitButton.Click += SubmitButtonOnClick;
+                if (!byInit)
+                {
+                    submitButton.Enabled = false;
+                }
+
+                if (!checkboxSelect.Checked)
+                {
+                    txtBoxName.Enabled = false;
+                    txtBoxValue.Enabled = false;
+                    submitButton.Enabled = false;
+                }
+
+                panel_add_DIYControls.Controls.Add(checkboxSelect);
+                panel_add_DIYControls.Controls.Add(txtBoxName); 
+                panel_add_DIYControls.Controls.Add(txtBoxValue);
+                panel_add_DIYControls.Controls.Add(submitButton);
             }
         }
 
@@ -1632,52 +1537,33 @@ namespace Freescale_debug
             var value = Convert.ToDouble(txtBox.Text)*1000.0;
             try
             {
-                var tmpMessageStand = FormPackage(2, id + 1, Math.Floor(value).ToString());
-                mySerialPort.Write(tmpMessageStand);
-
-                label28.Text = "Loading...";
-                var tmpHandle = new GetEchoForm(0, tmpMessageStand);
-                _queueEchoControl.Enqueue(tmpHandle);
-                timer_Send2GetEcho.Start();
+                SendMessageAndEnqueue(2, id + 1, Math.Floor(value).ToString());
             }
             catch (Exception ee)
             {
                 MessageBox.Show(ee.Message);
             }
-            //throw new NotImplementedException();
         }
 
         private void DIYTextboxNameChanged(object sender, EventArgs eventArgs)
         {
             var t = sender as TextBox;
-
-            //TextBox textBox = (TextBox)sender;
-
-            //textBox.Text = textBox.Text;
-            //MessageBox.Show("Change DIYtxt");
-            //throw new NotImplementedException();
         }
 
         private void CheckboxSelectOnCheckedChanged(object sender, EventArgs eventArgs)
         {
-            if (textBox_DIY_Number.Text == "")
-            {
-                MessageBox.Show(@"请输入需要的参数数量！", @"错误");
-                return;
-            }
+            DIYValidationCheck();
             var total = Convert.ToInt32(textBox_DIY_Number.Text);
             for (var i = 0; i < total; i++)
             {
-                var checkboxSelect = new CheckBox();
-                checkboxSelect =
-                    (CheckBox) panel_add_DIYControls.Controls.Find("checkBox_Def" + Convert.ToString(i + 1), true)[0];
+                var checkboxSelect = (CheckBox) panel_add_DIYControls.Controls.Find("checkBox_Def" +
+                    Convert.ToString(i + 1), true)[0];
 
                 var txtBox = new TextBox[2]; //用控件数组来定义每一行的TextBox,总共3个TextBox
                 txtBox[0] = (TextBox) panel_add_DIYControls.Controls.Find("txtName" + Convert.ToString(i + 1), true)[0];
                 txtBox[1] = (TextBox) panel_add_DIYControls.Controls.Find("txtValue" + Convert.ToString(i + 1), true)[0];
 
-                var btn = new Button();
-                btn = (Button) panel_add_DIYControls.Controls.Find("buttonSubmit" + Convert.ToString(i + 1), true)[0];
+                var btn = (Button) panel_add_DIYControls.Controls.Find("buttonSubmit" + Convert.ToString(i + 1), true)[0];
 
                 if (checkboxSelect.Checked)
                 {
@@ -1692,47 +1578,21 @@ namespace Freescale_debug
                     btn.Enabled = false;
                 }
             }
-
-            //throw new NotImplementedException();
         }
 
         private void button_DIY_Modify_Click(object sender, EventArgs e)
         {
-            if (textBox_DIY_Number.Text == "")
-            {
-                MessageBox.Show(@"请输入需要的参数数量！", @"错误");
-                return;
-            }
             //=====================================
             //数据头和封包
             var NeedSend = "";
             var head = "#";
             var end = "$";
             //=====================================
-
-            var total = Convert.ToInt32(textBox_DIY_Number.Text);
-            for (var i = 0; i < total; i++)
-            {
-                var checkboxSelect = new CheckBox();
-                checkboxSelect =
-                    (CheckBox) panel_add_DIYControls.Controls.Find("checkBox_Def" + Convert.ToString(i + 1), true)[0];
-
-                var txtBox = new TextBox[2]; //用控件数组来定义每一行的TextBox,总共3个TextBox
-                txtBox[0] = (TextBox) panel_add_DIYControls.Controls.Find("txtName" + Convert.ToString(i + 1), true)[0];
-                txtBox[1] = (TextBox) panel_add_DIYControls.Controls.Find("txtValue" + Convert.ToString(i + 1), true)[0];
-
-                var tmpMessageStand = txtBox[1].Text;
-
-                if (checkboxSelect.Checked)
-                {
-                    //第 i+1 个自定义参数
-                    NeedSend += FormPackage_NOHead_NOEnd(2, i + 1, tmpMessageStand);
-                }
-            }
-
             try
             {
-                NeedSend = head + NeedSend + end;
+                string combinedString = SendDIYParaAll();
+                NeedSend = head + combinedString + end;
+
                 mySerialPort.Write(NeedSend);
 
                 var tmpHandle = new GetEchoForm(0, NeedSend);
@@ -1745,173 +1605,136 @@ namespace Freescale_debug
             }
         }
 
+        private string SendDIYParaAll()
+        {
+            string NeedSend = "";
+            var total = Convert.ToInt32(textBox_DIY_Number.Text);
+            for (var i = 0; i < total; i++)
+            {
+                var checkboxSelect = (CheckBox)panel_add_DIYControls.Controls.Find("checkBox_Def" + 
+                    Convert.ToString(i + 1), true)[0];
+
+                var txtBox = new TextBox[2]; //用控件数组来定义每一行的TextBox,总共3个TextBox
+                txtBox[0] = (TextBox)panel_add_DIYControls.Controls.Find("txtName" + Convert.ToString(i + 1), true)[0];
+                txtBox[1] = (TextBox)panel_add_DIYControls.Controls.Find("txtValue" + Convert.ToString(i + 1), true)[0];
+
+                var tmpMessageStand = txtBox[1].Text;
+
+                if (checkboxSelect.Checked)
+                {
+                    NeedSend += FormPackage_NOHead_NOEnd(2, i + 1, tmpMessageStand);
+                }
+            }
+            return NeedSend;
+        }
+
         #endregion
 
         #region 4.实时变量参数
 
-        private void InitElectricity(int number)
+        private void InitElectricity()
         {
             var sp = new SharedPreferences(SavefileName);
             if (sp.ConfigFileExists)
             {
-                if (number < 1)
-                {
-                    MessageBox.Show(@"请输入需要的参数数量！", @"错误");
-                    return;
-                }
-                panel_Electricity.AutoScroll = true; //为panel添加滚动条
-                panel_Electricity.Controls.Clear(); //清空已有
-                var total = int.Parse(textBox_Electricity_Number.Text); //题目总数
-                var labelElect = new TextBox();
-                var txtBoxValue = new TextBox();
+                RealTimeValidationCheck();
 
-                for (var i = 0; i < total; i++)
-                {
-                    //名字
-                    labelElect = new TextBox();
-                    labelElect.Size = new Size(100, 20); //label大小                   
-                    labelElect.Location = new Point(30 + 120*0, 30*(i + 1)); //textbox坐标
-                    labelElect.Name = "txtElectName" + Convert.ToString(i + 1); //设定控件名称
-                    //labelElect.TextAlign = ContentAlignment.MiddleCenter;
-                    labelElect.Text = @"实时变量" + Convert.ToString(i + 1);
-                    labelElect.TextAlign = HorizontalAlignment.Center;
-                    //读取相应的值
-                    var elec_Name = string.Format("textElectName{0}", i + 1);
-                    labelElect.Text = sp.GetString(elec_Name, "1.0");
-
-                    //值
-                    txtBoxValue = new TextBox();
-                    txtBoxValue.Size = new Size(50, 50); //textbox大小                   
-                    txtBoxValue.Location = new Point(30 + 120*1, 30*(i + 1)); //textbox坐标
-                    txtBoxValue.Name = "txtElectValue" + Convert.ToString(i + 1); //设定控件名称
-                    txtBoxValue.TextAlign = HorizontalAlignment.Center;
-
-                    //读取相应的值
-                    var elec_Value = string.Format("txtElectValue{0}", i + 1);
-                    txtBoxValue.Text = sp.GetString(elec_Value, "1.0");
-
-                    panel_Electricity.Controls.Add(labelElect);
-                    panel_Electricity.Controls.Add(txtBoxValue); //把"值"加入到panel中
-                }
+                DrawRealTimePannel(sp, true);
             }
         }
-
         private void button_electricity_NumConfirm_Click(object sender, EventArgs e)
         {
-            if (textBox_Electricity_Number.Text == "")
+            RealTimeValidationCheck();
+
+            var sp = new SharedPreferences(SavefileName);
+            if (sp.ConfigFileExists)
             {
-                MessageBox.Show(@"请输入需要的参数数量！", @"错误");
-                return;
-            } //判断题目数是否未填
-            panel_Electricity.AutoScroll = true; //为panel添加滚动条
-            panel_Electricity.Controls.Clear(); //清空已有
-            var total = int.Parse(textBox_Electricity_Number.Text); //题目总数
-            var labelElect = new TextBox();
-            var txtBoxValue = new TextBox();
-
-            for (var i = 0; i < total; i++)
-            {
-                //名字
-                labelElect = new TextBox();
-                labelElect.Size = new Size(100, 20); //label大小                   
-                labelElect.Location = new Point(30 + 120*0, 30*(i + 1)); //textbox坐标
-                labelElect.Name = "txtElectName" + Convert.ToString(i + 1); //设定控件名称
-                //labelElect.BringToFront();
-                labelElect.Text = @"实时变量" + Convert.ToString(i + 1);
-                labelElect.TextAlign = HorizontalAlignment.Center;
-                //labelElect.Enabled = false;
-
-                //值
-                txtBoxValue = new TextBox();
-                txtBoxValue.Size = new Size(50, 50); //textbox大小
-                txtBoxValue.Location = new Point(30 + 120*1, 30*(i + 1)); //textbox坐标
-                txtBoxValue.Name = "txtElectValue" + Convert.ToString(i + 1); //设定控件名称
-                txtBoxValue.Text = "1.00";
-                txtBoxValue.TextAlign = HorizontalAlignment.Center;
-                //txtBoxValue.Enabled = false;
-
-                panel_Electricity.Controls.Add(labelElect);
-                panel_Electricity.Controls.Add(txtBoxValue); //把"值"加入到panel中
+                DrawRealTimePannel(sp, false);
             }
 
             SaveConfig(SavefileName);
         }
 
-        private void Init_DI_DynamicControls(int number)
+        private void DrawRealTimePannel(SharedPreferences sp, Boolean byInit)
         {
-            var sp = new SharedPreferences(SavefileName);
-            if (sp.ConfigFileExists)
+            panel_Electricity.AutoScroll = true;
+            panel_Electricity.Controls.Clear();
+            var total = int.Parse(textBox_Electricity_Number.Text);
+
+            for (var i = 0; i < total; i++)
             {
-                if (number < 1)
+                var labelElect = new TextBox();
+                labelElect.Size = new Size(100, 20); //label大小                   
+                labelElect.Location = new Point(30 + 120 * 0, 30 * (i + 1));
+                labelElect.Name = "txtElectName" + Convert.ToString(i + 1);
+                labelElect.Text = @"实时变量" + Convert.ToString(i + 1);
+                labelElect.TextAlign = HorizontalAlignment.Center;
+                if (byInit)
                 {
-                    MessageBox.Show(@"请输入需要的参数数量！", @"错误");
-                    return;
+                    var elecName = string.Format("textElectName{0}", i + 1);
+                    labelElect.Text = sp.GetString(elecName, "1.0");
                 }
-                panel_add_DIYControls.AutoScroll = true; //为panel添加滚动条
-                panel_add_DIYControls.Controls.Clear(); //清空已有
-                var txtBoxName = new TextBox();
+
                 var txtBoxValue = new TextBox();
-                var checkboxSelect = new CheckBox();
-
-                var submitButton = new Button();
-
-                for (var i = 0; i < number; i++)
+                txtBoxValue.Size = new Size(50, 50);
+                txtBoxValue.Location = new Point(30 + 120 * 1, 30 * (i + 1));
+                txtBoxValue.Name = "txtElectValue" + Convert.ToString(i + 1);
+                txtBoxValue.TextAlign = HorizontalAlignment.Center;
+                if
                 {
-                    //是否启用的选项
-                    checkboxSelect = new CheckBox();
-                    checkboxSelect.Size = new Size(50, 20);
-                    checkboxSelect.Location = new Point(30 + 70*0, 30*(i + 1)); //textbox坐标
-                    checkboxSelect.Name = "checkBox_Def" + Convert.ToString(i + 1);
-                    checkboxSelect.Text = (i + 1).ToString();
-                    //状态栏选择情况
-                    var checkState = string.Format("DIY_CheckState{0}", i + 1);
-                    checkboxSelect.Checked = sp.GetBoolean(checkState, true);
-                    checkboxSelect.CheckedChanged += CheckboxSelectOnCheckedChanged;
+                    var elec_Value = string.Format("txtElectValue{0}", i + 1);
+                    txtBoxValue.Text = sp.GetString(elec_Value, "1.0");
+                }
 
+                panel_Electricity.Controls.Add(labelElect);
+                panel_Electricity.Controls.Add(txtBoxValue);
+            }
+        }
+        private void RealTimeValidationCheck()
+        {
+            int number = Convert.ToInt16(textBox_Electricity_Number.Text);
+            if (number < 1)
+            {
+                MessageBox.Show(@"请输入需要的参数数量！", @"错误");
+                return;
+            }
+        }
+        #endregion
 
-                    //名字
-                    txtBoxName = new TextBox();
-                    txtBoxName.Size = new Size(50, 50); //textbox大小                   
-                    txtBoxName.Location = new Point(30 + 70*1, 30*(i + 1)); //textbox坐标
-                    txtBoxName.Name = "txtName" + Convert.ToString(i + 1); //设定控件名称
-                    txtBoxName.TextAlign = HorizontalAlignment.Center;
-                    //自己定义的变量名称
-                    var txtName_DIY = string.Format("DIY_TextName{0}", i + 1);
-                    txtBoxName.Text = sp.GetString(txtName_DIY, "数据");
-                    txtBoxName.TextChanged += DIYTextboxNameChanged;
+        #region 5. 摄像头参数
 
-                    //值
-                    txtBoxValue = new TextBox();
-                    txtBoxValue.Size = new Size(50, 50); //textbox大小                   
-                    txtBoxValue.Location = new Point(30 + 70*2, 30*(i + 1)); //textbox坐标
-                    txtBoxValue.Name = "txtValue" + Convert.ToString(i + 1); //设定控件名称
-                    //自定义参数的数值
-                    var txtValue_DIY = string.Format("DIY_TextValue{0}", i + 1);
-                    txtBoxValue.Text = sp.GetString(txtValue_DIY, "1.0");
-                    txtBoxValue.TextAlign = HorizontalAlignment.Center;
+        private void Camera_DrawActual(Bitmap bitmap, string cameraData)
+        {
+            var bitmapData =
+                bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height),
+                    ImageLockMode.ReadWrite, bitmap.PixelFormat);
 
-                    //按钮
-                    submitButton = new Button();
-                    submitButton.Size = new Size(50, 20); //textbox大小                   
-                    submitButton.Location = new Point(30 + 70*3, 30*(i + 1)); //textbox坐标
-                    submitButton.Name = "buttonSubmit" + Convert.ToString(i + 1); //设定控件名称
-                    submitButton.Text = @"修改";
-                    submitButton.Click += SubmitButtonOnClick;
-                    //submitButton.Enabled = false;
+            var bytesPerPixel = Image.GetPixelFormatSize(bitmap.PixelFormat)/8;
+            var byteCount = bitmapData.Stride*bitmap.Height;
+            var pixels = new byte[byteCount];
+            var ptrFirstPixel = bitmapData.Scan0;
+            Marshal.Copy(ptrFirstPixel, pixels, 0, pixels.Length);
+            var heightInPixels = bitmapData.Height;
+            var widthInBytes = bitmapData.Width*bytesPerPixel;
 
-                    if (!checkboxSelect.Checked)
-                    {
-                        txtBoxName.Enabled = false;
-                        txtBoxValue.Enabled = false;
-                        submitButton.Enabled = false;
-                    }
+            for (var y = 0; y < heightInPixels; y++)
+            {
+                var currentLine = y*bitmapData.Stride;
 
-                    panel_add_DIYControls.Controls.Add(checkboxSelect);
-                    panel_add_DIYControls.Controls.Add(txtBoxName); //把"名字"加入到panel中
-                    panel_add_DIYControls.Controls.Add(txtBoxValue); //把"值"加入到panel中
-                    panel_add_DIYControls.Controls.Add(submitButton);
+                for (var x = 0; x < widthInBytes; x = x + bytesPerPixel)
+                {
+                    int grey = Convert.ToInt16(cameraData.ElementAt(Convert.ToInt16(y + x/4)));
+
+                    // calculate new pixel value
+                    pixels[currentLine + x] = (byte) grey;
+                    pixels[currentLine + x + 1] = (byte) grey;
+                    pixels[currentLine + x + 2] = (byte) grey;
+                    pixels[currentLine + x + 3] = 255;
                 }
             }
+            // copy modified bytes back
+            Marshal.Copy(pixels, 0, ptrFirstPixel, pixels.Length);
+            bitmap.UnlockBits(bitmapData);
         }
 
         #endregion
