@@ -42,29 +42,20 @@ namespace Freescale_debug
         //SerialPort Flags
         private bool _closing; //是否正在关闭串口，执行Application.DoEvents，并阻止再次
         private Bitmap _bitmapOld;
-        //ccd
-        private string _ccdTtt = "";
         //ZedGraph 窗体间传参
         public CallObject[] coOb = new CallObject[ScopeNumber];
-        private bool _dequeueFirstTime = true;
-        private double _directionDOld;
-        private double _directionIOld;
 
         private bool _isLoadHistory;
         //自定义参数的一些变量
-        private bool _isLoadingDiyok = false;
-        private bool _isReading;
         private bool _listening; //是否没有执行完invoke相关操作  
 
         private ReceivedDataType myReceivedDataType = ReceivedDataType.CharType;
         private SendDataType mySendDataType = SendDataType.CharType;
-        private bool needWrite = false;
         private string RecievedStringAdd = ""; //接收到的数据
-        private int retryCount;
+        private int retryCount = 0;
         private bool showInfo = true;
 
-        private StreamWriter sw;
-        private GetEchoForm tmpSendHandle = new GetEchoForm();
+        private GetEchoForm tmpSendHandle = new GetEchoForm(1, "");
         private int totalReceivedBytes;
         public UpdateAcceptTextBoxTextHandler UpdateTextHandler;
         private int _xmaxScale = 100;
@@ -237,7 +228,6 @@ namespace Freescale_debug
 
                 label_receiveCount.Text = @"接受区计数：" + totalReceivedBytes;
             }
-            _isReading = true;
         }
 
         /// <summary>
@@ -344,13 +334,6 @@ namespace Freescale_debug
         {
             try
             {
-                if (_dequeueFirstTime && _queueEchoControl.Count > 0)
-                {
-                    var send_message = (GetEchoForm) _queueEchoControl.Dequeue();
-                    tmpSendHandle = send_message;
-                    _dequeueFirstTime = false;
-                }
-
                 if (tmpSendHandle.Flag == 1 && _queueEchoControl.Count > 0)
                 {
                     var send_message = (GetEchoForm) _queueEchoControl.Dequeue();
@@ -364,12 +347,6 @@ namespace Freescale_debug
                                    @"队列长度：" + _queueEchoControl.Count;
 
                     retryCount++;
-                    ////设置自动重发次数上限
-                    //if (retryCount > 50)
-                    //{
-                    //    tmpSendHandle.Flag = 1;
-                    //    label28.Text = @"本次超过最大重发次数";
-                    //}
                 }
             }
             catch (Exception ee)
@@ -424,7 +401,7 @@ namespace Freescale_debug
                             father = Convert.ToInt16(splitted_Message.ElementAt(1 + 4*i));
                             child = Convert.ToInt16(splitted_Message.ElementAt(2 + 4*i));
                         }
-                        catch (Exception ee)
+                        catch
                         {
                             //到了这里就表示解析出错了。
                             return;
@@ -605,7 +582,6 @@ namespace Freescale_debug
                                     hasChecked_Item = true;
                                     timer_fresh.Start();
                                 }
-                                // zedGraph_local.GraphPane.CurveList.Clear();
                             }
 
                             for (var i = 0; i < total; i++)
@@ -846,9 +822,6 @@ namespace Freescale_debug
             //sendSettingGroupBox.Enabled = false;
             totalReceivedBytes = 0;
             _totalSendBytes = 0;
-            _isReading = false;
-            //acceptRichTextBox.Clear();
-            //sendRichTextBox.Clear();
         }
 
         private void SetSerialPortPropertiesBeforeSending()
@@ -1286,7 +1259,6 @@ namespace Freescale_debug
 
         private void SendMessageAndEnqueue(int father, int child, string messgae)
         {
-            SaveConfig(SavefileName);
             messgae = FormPackage(father, child, messgae);
             mySerialPort.Write(messgae);
 
@@ -1462,19 +1434,19 @@ namespace Freescale_debug
                 checkboxSelect.Location = new Point(30 + 70 * 0, 30 * (i + 1));
                 checkboxSelect.Name = "checkBox_Def" + Convert.ToString(i + 1);
                 checkboxSelect.Text = (i + 1).ToString();
-                checkboxSelect.CheckedChanged += CheckboxSelectOnCheckedChanged;
                 if (byInit)
                 {
                     var checkState = string.Format("DIY_CheckState{0}", i + 1);
                     checkboxSelect.Checked = sp.GetBoolean(checkState, true);
                 }
+                checkboxSelect.CheckedChanged += CheckboxSelectOnCheckedChanged;
 
                 var txtBoxName = new TextBox();
                 txtBoxName.Size = new Size(50, 50); //textbox大小                   
                 txtBoxName.Location = new Point(30 + 70 * 1, 30 * (i + 1));
-                txtBoxName.Name = "txtName" + Convert.ToString(i + 1);
+                txtBoxName.Name = @"txtName" + Convert.ToString(i + 1);
+                txtBoxName.Text = @"Name" + Convert.ToString(i + 1);
                 txtBoxName.TextAlign = HorizontalAlignment.Center;
-                txtBoxName.TextChanged += DIYTextboxNameChanged;
                 if (byInit)
                 {
                     var txtName_DIY = string.Format("DIY_TextName{0}", i + 1);
@@ -1489,6 +1461,7 @@ namespace Freescale_debug
                 txtBoxValue.Size = new Size(50, 50); //textbox大小                   
                 txtBoxValue.Location = new Point(30 + 70 * 2, 30 * (i + 1));
                 txtBoxValue.Name = "txtValue" + Convert.ToString(i + 1);
+                txtBoxValue.Text = @"1.0";
                 txtBoxValue.TextAlign = HorizontalAlignment.Center;
                 if (byInit)
                 {
@@ -1499,6 +1472,7 @@ namespace Freescale_debug
                 {
                     txtBoxValue.Enabled = false;
                 }
+                txtBoxValue.TextChanged += DIYTextboxValueChanged;
 
                 var submitButton = new Button();
                 submitButton.Size = new Size(50, 20); //textbox大小                   
@@ -1527,16 +1501,17 @@ namespace Freescale_debug
 
         private void SubmitButtonOnClick(object sender, EventArgs eventArgs)
         {
-            var btn_clk = (Button) sender;
+            var btnClk = (Button) sender;
 
-            var id = GetNumber(btn_clk.Name) - 1;
+            var id = GetNumber(btnClk.Name) - 1;
 
-            var txtBox = new TextBox(); //获取这个曲线的名称
+            var txtBox = new TextBox();
             txtBox = (TextBox) panel_add_DIYControls.Controls.Find("txtValue" + Convert.ToString(id + 1), true)[0];
 
             var value = Convert.ToDouble(txtBox.Text)*1000.0;
             try
             {
+                SaveConfig(SavefileName);
                 SendMessageAndEnqueue(2, id + 1, Math.Floor(value).ToString());
             }
             catch (Exception ee)
@@ -1545,9 +1520,16 @@ namespace Freescale_debug
             }
         }
 
-        private void DIYTextboxNameChanged(object sender, EventArgs eventArgs)
+        private void DIYTextboxValueChanged(object sender, EventArgs eventArgs)
         {
             var t = sender as TextBox;
+            //Regex reg = new Regex("^(-?/d+)(/./d+)?$");//new Regex(@"/d+[/.]?(/d+)?");
+
+            //if (t != null && reg.IsMatch(t.Text))
+            //{
+            //    MessageBox.Show(@"请输入浮点或整数！");
+            //    t.Text = "";
+            //}
         }
 
         private void CheckboxSelectOnCheckedChanged(object sender, EventArgs eventArgs)
@@ -1680,7 +1662,7 @@ namespace Freescale_debug
                 txtBoxValue.Location = new Point(30 + 120 * 1, 30 * (i + 1));
                 txtBoxValue.Name = "txtElectValue" + Convert.ToString(i + 1);
                 txtBoxValue.TextAlign = HorizontalAlignment.Center;
-                if
+                if (byInit)
                 {
                     var elec_Value = string.Format("txtElectValue{0}", i + 1);
                     txtBoxValue.Text = sp.GetString(elec_Value, "1.0");
@@ -1698,7 +1680,7 @@ namespace Freescale_debug
                 MessageBox.Show(@"请输入需要的参数数量！", @"错误");
                 return;
             }
-        }
+       } 
         #endregion
 
         #region 5. 摄像头参数
@@ -1740,88 +1722,6 @@ namespace Freescale_debug
         #endregion
 
         #region 6.CCD图像
-
-        private string testCCD_Image()
-        {
-            var randInts = new int[128];
-            var result = "";
-            var rand = new Random();
-            for (var i = 0; i < 128; i++)
-            {
-                randInts[i] = rand.Next(1, 255);
-                result += Convert.ToChar(randInts[i]).ToString();
-                //result += Convert.ToChar(0).ToString();
-            }
-            return result;
-        }
-
-        private int Average_ccd(List<int> p)
-        {
-            var sum = p.Select((t, i) => p.ElementAt(i)).Sum();
-
-            var thresold = sum/p.Count;
-
-            if (thresold > 230)
-                thresold = 100;
-            else if (thresold < 150)
-                thresold = 200;
-            else
-            {
-                thresold = Otsu(p);
-            }
-
-            return thresold;
-        }
-
-        private int Otsu(List<int> p)
-        {
-            //处理全是黑色时候的情况
-
-            var threshold = 0;
-            int g = 0, max = 0;
-            int total = 0, total_low = 0;
-            int u0 = 0, u1 = 0, count = 0, cnt = 0;
-            var tmpData = new int[256];
-            var j = 0;
-            for (j = 5; j <= 122; j++)
-            {
-                tmpData[p.ElementAt(j)]++;
-                total += p.ElementAt(j);
-            }
-            for (j = 0; j <= 254; j++)
-            {
-                cnt = tmpData[j];
-                if (cnt == 0) continue; // 优化加速
-                count += tmpData[j];
-                total_low += cnt*j;
-                u0 = total_low/count;
-                if (count >= 118) break; // 优化加速 122 - 5+1
-                u1 = (total - total_low)/(118 - count);
-                g = ((u0 - u1)*(u0 - u1))*((count*(118 - count)))/16384;
-                if (g > max)
-                {
-                    max = g;
-                    threshold = j;
-                }
-            }
-
-            return threshold;
-        }
-
-        private string CCD_FindBoard(List<int> p)
-        {
-            var black = "Border";
-            for (var i = 0; i < p.Count - 1; i++)
-            {
-                if ((p.ElementAt(i) == 255 && p.ElementAt(i + 1) == 0) ||
-                    (p.ElementAt(i) == 0 && p.ElementAt(i + 1) == 255))
-                {
-                    black += i + " ";
-                }
-            }
-            return black;
-        }
-
         private void CCD_DrawActual(Bitmap bitmap, List<int> recvBuff)
         {
             var bitmapData =
@@ -1908,42 +1808,6 @@ namespace Freescale_debug
             Marshal.Copy(pixels, 0, ptrFirstPixel, pixels.Length);
             bitmap.UnlockBits(bitmapData);
         }
-
-        private void ProcessUsingLockbits(Bitmap processedBitmap)
-        {
-            var bitmapData =
-                processedBitmap.LockBits(new Rectangle(0, 0, processedBitmap.Width, processedBitmap.Height),
-                    ImageLockMode.ReadWrite, processedBitmap.PixelFormat);
-
-            var bytesPerPixel = Image.GetPixelFormatSize(processedBitmap.PixelFormat)/8;
-            var byteCount = bitmapData.Stride*processedBitmap.Height;
-            var pixels = new byte[byteCount];
-            var ptrFirstPixel = bitmapData.Scan0;
-            Marshal.Copy(ptrFirstPixel, pixels, 0, pixels.Length);
-            var heightInPixels = bitmapData.Height;
-            var widthInBytes = bitmapData.Width*bytesPerPixel;
-
-            for (var y = 0; y < heightInPixels; y++)
-            {
-                var currentLine = y*bitmapData.Stride;
-                for (var x = 0; x < widthInBytes; x = x + bytesPerPixel)
-                {
-                    int oldBlue = pixels[currentLine + x];
-                    int oldGreen = pixels[currentLine + x + 1];
-                    int oldRed = pixels[currentLine + x + 2];
-
-                    // calculate new pixel value
-                    pixels[currentLine + x] = (byte) oldBlue;
-                    pixels[currentLine + x + 1] = (byte) oldGreen;
-                    pixels[currentLine + x + 2] = (byte) oldRed;
-                }
-            }
-
-            // copy modified bytes back
-            Marshal.Copy(pixels, 0, ptrFirstPixel, pixels.Length);
-            processedBitmap.UnlockBits(bitmapData);
-        }
-
         #endregion
 
         #region 7.虚拟示波器
@@ -1994,10 +1858,7 @@ namespace Freescale_debug
                     SymbolType.None);
             }
 
-            // up the proper scrolling parameters
-            zedGraph_local.AxisChange();
-            // Make sure the Graph gets redrawn
-            zedGraph_local.Invalidate();
+            refleshZedPane(zedGraph_local);
         }
 
         private void Init_pane_Scope()
@@ -2006,61 +1867,50 @@ namespace Freescale_debug
 
             panel_Scope.AutoScroll = true;
             var total = ScopeNumber;
-            var checkDrawing = new CheckBox();
-            var txtBoxName = new TextBox();
-            var buttonNewForm = new Button();
-
             for (var i = 0; i < total; i++)
             {
-                //是否启用的选项
-                checkDrawing = new CheckBox();
+                var checkDrawing = new CheckBox();
                 checkDrawing.Size = new Size(15, 15);
-                checkDrawing.Location = new Point(20 + i%8*77, 10 + i/8*60); //textbox坐标
+                checkDrawing.Location = new Point(20 + i%8*77, 10 + i/8*60);
                 checkDrawing.Name = "checkBox_Def" + Convert.ToString(i + 1);
                 checkDrawing.Text = "";
-                //状态栏选择情况
+
                 var checkState = string.Format("SCOPE_CheckState{0}", i + 1);
                 checkDrawing.Checked = sp.GetBoolean(checkState, false);
                 checkDrawing.CheckedChanged += CheckDrawingOnCheckedChanged;
 
-                //名字
-                txtBoxName = new TextBox();
+                var txtBoxName = new TextBox();
                 txtBoxName.Size = new Size(50, 20); //textbox大小                   
-                txtBoxName.Location = new Point(41 + i%8*77, 7 + i/8*60); //textbox坐标
-                txtBoxName.Name = "txtName" + Convert.ToString(i + 1); //设定控件名称
+                txtBoxName.Location = new Point(41 + i%8*77, 7 + i/8*60);
+                txtBoxName.Name = "txtName" + Convert.ToString(i + 1);
                 txtBoxName.TextAlign = HorizontalAlignment.Center;
-                //自己定义的变量名称
                 var txtName_DIY = string.Format("SCOPE_TextName{0}", i + 1);
                 var getName = sp.GetString(txtName_DIY, @"波形" + Convert.ToString(i + 1));
                 txtBoxName.Text = getName.Trim() != "" ? getName : string.Format("波形{0}", i + 1);
                 txtBoxName.BackColor = _colorLine[i%8];
                 txtBoxName.TextChanged += ScopeTextNameChanged;
-                //txtBoxName.ForeColor = Color.Black;
                 txtBoxName.Enabled = checkDrawing.Checked;
 
-                //值
-                buttonNewForm = new Button();
-                buttonNewForm.Size = new Size(66, 23); //button大小
-                buttonNewForm.Location = new Point(25 + i%8*77, 34 + i/8*60); //textbox坐标
-                buttonNewForm.Name = "buttonDraw" + Convert.ToString(i + 1); //设定控件名称
+                var buttonNewForm = new Button();
+                buttonNewForm.Size = new Size(66, 23);
+                buttonNewForm.Location = new Point(25 + i%8*77, 34 + i/8*60);
+                buttonNewForm.Name = "buttonDraw" + Convert.ToString(i + 1);
                 buttonNewForm.Text = @"独立图像";
                 buttonNewForm.Click += ButtonNewFormOnClick;
                 buttonNewForm.Enabled = checkDrawing.Checked;
 
                 panel_Scope.Controls.Add(checkDrawing);
-                panel_Scope.Controls.Add(txtBoxName); //把"名字"加入到panel中
-                panel_Scope.Controls.Add(buttonNewForm); //把"值"加入到panel中
+                panel_Scope.Controls.Add(txtBoxName);
+                panel_Scope.Controls.Add(buttonNewForm);
             }
         }
 
         private void timer_fresh_Tick(object sender, EventArgs e)
         {
-            zedGraph_local.AxisChange();
-            ////z1.Invalidate();
-            zedGraph_local.Refresh();
+            refleshZedPane(zedGraph_local);
         }
 
-        private void ScopeTextNameChanged(object sender, EventArgs eventArgs) //曲线的名字改变事件
+        private void ScopeTextNameChanged(object sender, EventArgs eventArgs)
         {
             var txtBox = sender as TextBox;
 
@@ -2068,31 +1918,29 @@ namespace Freescale_debug
 
             zedGraph_local.GraphPane.CurveList[id].Label.Text = txtBox.Text;
 
-            zedGraph_local.Invalidate();
-            //throw new NotImplementedException();
+            refleshZedPane(zedGraph_local);
         }
 
         private string MyPointValueHandler(ZedGraphControl control, GraphPane pane,
             CurveItem curve, int iPt)
         {
-            // Get the PointPair that is under the mouse
-            var pt = curve[iPt];
-
+            PointPair pt = curve[iPt];
             return curve.Label.Text + " is " + pt.Y.ToString("f2") + " units at " + pt.X.ToString("f1");
         }
 
         private void CheckDrawingOnCheckedChanged(object sender, EventArgs eventArgs)
         {
-            var total = ScopeNumber;
+            int total = ScopeNumber;
 
             var checkchangBox = (CheckBox) sender;
             var id = GetNumber(checkchangBox.Name) - 1;
 
-            var txtBox = new TextBox(); //用控件数组来定义每一行的TextBox,总共3个TextBox
-            txtBox = (TextBox) panel_Scope.Controls.Find("txtName" + Convert.ToString(id + 1), true)[0];
+            var txtBox = (TextBox) panel_Scope.Controls.Find("txtName" +
+                Convert.ToString(id + 1), true)[0];
 
             var buttonNewForm = new Button();
-            buttonNewForm = (Button) panel_Scope.Controls.Find("buttonDraw" + Convert.ToString(id + 1), true)[0];
+            buttonNewForm = (Button) panel_Scope.Controls.Find("buttonDraw" +
+                Convert.ToString(id + 1), true)[0];
 
             if (checkchangBox.Checked)
             {
@@ -2124,37 +1972,36 @@ namespace Freescale_debug
                     zedGrpahNames[id].listZed.RemoveRange(0, upLimit);
                 }
             }
-            //throw new NotImplementedException();
 
-            zedGraph_local.AxisChange();
-            ////z1.Invalidate();
-            zedGraph_local.Refresh();
+            refleshZedPane(zedGraph_local);
+        }
+        private void refleshZedPane(ZedGraphControl zedGraph)
+        {
+            zedGraph.AxisChange();
+            zedGraph.Invalidate();
         }
 
         private void ButtonNewFormOnClick(object sender, EventArgs eventArgs)
         {
-            var btn_clk = (Button) sender;
+            var btnClk = (Button) sender;
 
-            var id = GetNumber(btn_clk.Name) - 1;
+            var id = GetNumber(btnClk.Name) - 1;
 
             if (zedGrpahNames[id].isSingleWindowShowed == false)
             {
                 zedGrpahNames[id].isSingleWindowShowed = true;
 
-                var txtBox = new TextBox(); //获取这个曲线的名称
-                txtBox = (TextBox) panel_Scope.Controls.Find("txtName" + Convert.ToString(id + 1), true)[0];
+                var txtBox = (TextBox) panel_Scope.Controls.Find("txtName" + 
+                    Convert.ToString(id + 1), true)[0];
 
                 var singleWindow = new ZedGraphSingleWindow(id, coOb[id], txtBox.Text);
-
                 singleWindow.SingnleClosedEvent += SingleWindowClosed_RecvInfo;
-
                 singleWindow.Show();
             }
             else
             {
                 MessageBox.Show(@"不能重复创建！已经有了一个窗口！");
             }
-            //throw new NotImplementedException();
         }
 
         private static int GetNumber(string str)
@@ -2186,10 +2033,7 @@ namespace Freescale_debug
             zedGraph_local.GraphPane.YAxis.Scale.MinAuto = true;
             zedGraph_local.GraphPane.YAxis.Scale.MaxAuto = true;
 
-            // up the proper scrolling parameters
-            zedGraph_local.AxisChange();
-            // Make sure the Graph gets redrawn
-            zedGraph_local.Invalidate();
+            refleshZedPane(zedGraph_local);
         }
 
         private void SingleWindowClosed_RecvInfo(int id)
@@ -2205,13 +2049,11 @@ namespace Freescale_debug
         {
             try
             {
-                var tmpMessage = FormPackage(3, 1, "0");
-                mySerialPort.Write(tmpMessage);
-
                 label28.Text = @"Loading....";
-                var tmpHandle = new GetEchoForm(0, tmpMessage);
-                _queueEchoControl.Enqueue(tmpHandle);
-                timer_Send2GetEcho.Start();
+
+                var tmpMessage = FormPackage(3, 1, "0");
+
+                SendMessageAndEnqueue(3, 1, tmpMessage);
             }
             catch (Exception ee)
             {
@@ -2223,7 +2065,7 @@ namespace Freescale_debug
         {
             //清空现在的所有队列
             _queueEchoControl.Clear();
-            _dequeueFirstTime = false;
+            tmpSendHandle.Flag = 1;
 
             try
             {
@@ -2258,107 +2100,117 @@ namespace Freescale_debug
                 var fs = new FileStream(fileName, FileMode.Create, FileAccess.Write);
                 var sw = new StreamWriter(fs, Encoding.Default);
 
-                //小车参数
-                sw.WriteLine("CarType:{0}", radioButton_FourWheel.Checked ? "1" : "0");
-                if (radioButton_FourWheel.Checked) //四轮车PID
-                {
-                    //舵机PID参数
-                    var strSteer = "P" + textBox_Steer_P.Text + " I" + textBox_Steer_I.Text + " D" +
-                                   textBox_Steer_D.Text;
-                    sw.WriteLine("Steer:{0}", strSteer);
-
-                    //电机PID参数
-                    var strMotor = "P" + textBox_Motor_P.Text + " I" + textBox_Motor_I.Text + " D" +
-                                   textBox_Motor_D.Text;
-                    sw.WriteLine("Motor:{0}", strMotor);
-                }
-                else if (radioButton_BalanceCar.Checked) //直立车PID参数的获取
-                {
-                    //直立PID
-                    var strStand = "P" + textBox_Stand_P.Text + " I" + textBox_Stand_I.Text + " D" +
-                                   textBox_Stand_D.Text;
-                    sw.WriteLine("Stand:{0}", strStand);
-
-                    //速度PID
-                    var strSpeed = "P" + textBox_Speed_P.Text + " I" + textBox_Speed_I.Text + " D" +
-                                   textBox_Speed_D.Text;
-                    sw.WriteLine("Speed:{0}", strSpeed);
-
-                    //方向PID
-                    var strDirection = "P" + textBox_Direction_P.Text + " I" + textBox_Direction_I.Text + " D" +
-                                       textBox_Direction_D.Text;
-                    sw.WriteLine("Direction:{0}", strDirection);
-                }
-
-                //自定义参数
-                var totalDIY = 0;
-                if (textBox_DIY_Number.Text == "")
-                {
-                    //essageBox.Show(@"请重新输入需要的参数数量！", @"错误");
-                    totalDIY = 0;
-                }
-                totalDIY = Convert.ToInt32(textBox_DIY_Number.Text);
-
-                sw.WriteLine("DIY_Num:{0}", totalDIY);
-
-                for (var i = 0; i < totalDIY; i++)
-                {
-                    var txtBox = new TextBox[2]; //用控件数组来定义每一行的TextBox,总共3个TextBox
-                    txtBox[0] =
-                        (TextBox) panel_add_DIYControls.Controls.Find("txtName" + Convert.ToString(i + 1), true)[0];
-                    txtBox[1] =
-                        (TextBox) panel_add_DIYControls.Controls.Find("txtValue" + Convert.ToString(i + 1), true)[0];
-
-                    var strName = txtBox[0].Text;
-                    var strValue = txtBox[1].Text;
-
-                    sw.WriteLine("{0}:{1}", strName, strValue);
-                }
-
-                //示波器参数
-                var countScope = 0;
-                var checkDrawing = new CheckBox[ScopeNumber];
-                var txtBox_Scope = new TextBox[ScopeNumber]; //用控件数组来定义每一行的TextBox,总共3个TextBox
-                var buttonNewForm = new Button[ScopeNumber];
-
-                for (var i = 0; i < ScopeNumber; i++)
-                {
-                    checkDrawing[i] =
-                        (CheckBox)
-                            panel_Scope.Controls.Find("checkBox_Def" + Convert.ToString(i + 1), true)[0];
-
-                    txtBox_Scope[i] =
-                        (TextBox) panel_Scope.Controls.Find("txtName" + Convert.ToString(i + 1), true)[0];
-
-                    buttonNewForm[i] =
-                        (Button) panel_Scope.Controls.Find("buttonDraw" + Convert.ToString(i + 1), true)[0];
-
-                    if (checkDrawing[i].Checked)
-                        ++countScope;
-                }
-                sw.WriteLine("ScopeLineNumber:{0}", countScope);
-
-                //将曲线数据保存
-                //MessageBox.Show(listZed[0].ElementAt(1).ToString());
-                //(1,3)
-                for (var i = 0; i < ScopeNumber; i++)
-                {
-                    if (checkDrawing[i].Checked)
-                    {
-                        sw.WriteLine("ScopeLineOrder:{0}", i);
-                        sw.WriteLine("PointNumber:{0}", zedGrpahNames[i].listZed.Count);
-
-                        for (var j = 0; j < zedGrpahNames[i].listZed.Count; j++)
-                        {
-                            sw.Write("{0}", zedGrpahNames[i].listZed.ElementAt(j).ToString().Replace(" ", ""));
-                        }
-                        sw.WriteLine("");
-                    }
-                }
+                WritePIDValueToText(sw, fileName);
+                WriteDIYSetupToText(sw, fileName);
+                WriteScopeSetupToText(sw, fileName);
 
                 //...
                 sw.Close();
                 fs.Close();
+            }
+        }
+
+        private void WritePIDValueToText(StreamWriter sw, string filename)
+        {
+            //小车参数
+            sw.WriteLine("CarType:{0}", radioButton_FourWheel.Checked ? "1" : "0");
+            if (radioButton_FourWheel.Checked) //四轮车PID
+            {
+                //舵机PID参数
+                var strSteer = "P" + textBox_Steer_P.Text + " I" + textBox_Steer_I.Text + " D" +
+                               textBox_Steer_D.Text;
+                sw.WriteLine("Steer:{0}", strSteer);
+
+                //电机PID参数
+                var strMotor = "P" + textBox_Motor_P.Text + " I" + textBox_Motor_I.Text + " D" +
+                               textBox_Motor_D.Text;
+                sw.WriteLine("Motor:{0}", strMotor);
+            }
+            else if (radioButton_BalanceCar.Checked) //直立车PID参数的获取
+            {
+                //直立PID
+                var strStand = "P" + textBox_Stand_P.Text + " I" + textBox_Stand_I.Text + " D" +
+                               textBox_Stand_D.Text;
+                sw.WriteLine("Stand:{0}", strStand);
+
+                //速度PID
+                var strSpeed = "P" + textBox_Speed_P.Text + " I" + textBox_Speed_I.Text + " D" +
+                               textBox_Speed_D.Text;
+                sw.WriteLine("Speed:{0}", strSpeed);
+
+                //方向PID
+                var strDirection = "P" + textBox_Direction_P.Text + " I" + textBox_Direction_I.Text + " D" +
+                                   textBox_Direction_D.Text;
+                sw.WriteLine("Direction:{0}", strDirection);
+            }
+        }
+
+        private void WriteDIYSetupToText(StreamWriter sw, string fileName)
+        {
+            //自定义参数
+            var totalDIY = 0;
+            if (textBox_DIY_Number.Text == "")
+            {
+                //essageBox.Show(@"请重新输入需要的参数数量！", @"错误");
+                totalDIY = 0;
+            }
+            totalDIY = Convert.ToInt32(textBox_DIY_Number.Text);
+
+            sw.WriteLine("DIY_Num:{0}", totalDIY);
+
+            for (var i = 0; i < totalDIY; i++)
+            {
+                var txtBox = new TextBox[2]; //用控件数组来定义每一行的TextBox,总共3个TextBox
+                txtBox[0] =
+                    (TextBox)panel_add_DIYControls.Controls.Find("txtName" + Convert.ToString(i + 1), true)[0];
+                txtBox[1] =
+                    (TextBox)panel_add_DIYControls.Controls.Find("txtValue" + Convert.ToString(i + 1), true)[0];
+
+                var strName = txtBox[0].Text;
+                var strValue = txtBox[1].Text;
+
+                sw.WriteLine("{0}:{1}", strName, strValue);
+            }
+        }
+
+        private void WriteScopeSetupToText(StreamWriter sw, string fileName)
+        {
+            //示波器参数
+            var countScope = 0;
+            var checkDrawing = new CheckBox[ScopeNumber];
+            var txtBox_Scope = new TextBox[ScopeNumber]; 
+            var buttonNewForm = new Button[ScopeNumber];
+
+            for (var i = 0; i < ScopeNumber; i++)
+            {
+                checkDrawing[i] =
+                    (CheckBox)
+                        panel_Scope.Controls.Find("checkBox_Def" + Convert.ToString(i + 1), true)[0];
+
+                txtBox_Scope[i] =
+                    (TextBox)panel_Scope.Controls.Find("txtName" + Convert.ToString(i + 1), true)[0];
+
+                buttonNewForm[i] =
+                    (Button)panel_Scope.Controls.Find("buttonDraw" + Convert.ToString(i + 1), true)[0];
+
+                if (checkDrawing[i].Checked)
+                    ++countScope;
+            }
+            sw.WriteLine("ScopeLineNumber:{0}", countScope);
+
+            for (var i = 0; i < ScopeNumber; i++)
+            {
+                if (checkDrawing[i].Checked)
+                {
+                    sw.WriteLine("ScopeLineOrder:{0}", i);
+                    sw.WriteLine("PointNumber:{0}", zedGrpahNames[i].listZed.Count);
+
+                    for (var j = 0; j < zedGrpahNames[i].listZed.Count; j++)
+                    {
+                        sw.Write("{0}", zedGrpahNames[i].listZed.ElementAt(j).ToString().Replace(" ", ""));
+                    }
+                    sw.WriteLine("");
+                }
             }
         }
 
@@ -2386,211 +2238,232 @@ namespace Freescale_debug
                 if (lines.ElementAt(0).Contains("CarType"))
                 {
                     var countLine = 0;
-                    int carType = Convert.ToInt16(lines.ElementAt(countLine).Split(':').ElementAt(1));
-                    countLine++;
 
-                    if (carType == 0) //直立车
-                    {
-                        var indexP = lines.ElementAt(countLine).IndexOf('P');
-                        var indexI = lines.ElementAt(countLine).IndexOf(" I", StringComparison.Ordinal);
-                        var indexD = lines.ElementAt(countLine).IndexOf(" D", StringComparison.Ordinal);
-
-
-                        //直立
-                        var standP = lines.ElementAt(countLine).Substring(indexP + 1, indexI - indexP - 1);
-                        var standI = lines.ElementAt(countLine).Substring(indexI + 2, indexD - indexI - 1).Trim();
-                        var standD = lines.ElementAt(countLine).Substring(indexD + 2);
-                        textBox_Stand_P.Text = standP;
-                        textBox_Stand_I.Text = standI;
-                        textBox_Stand_D.Text = standD;
-                        ++countLine;
-
-                        //速度
-                        indexP = lines.ElementAt(countLine).IndexOf('P');
-                        indexI = lines.ElementAt(countLine).IndexOf(" I", StringComparison.Ordinal);
-                        indexD = lines.ElementAt(countLine).IndexOf(" D", StringComparison.Ordinal);
-                        var speedP = lines.ElementAt(countLine).Substring(indexP + 1, indexI - indexP - 1);
-                        var speedI = lines.ElementAt(countLine).Substring(indexI + 2, indexD - indexI - 1).Trim();
-                        var speedD = lines.ElementAt(countLine).Substring(indexD + 2);
-                        textBox_Speed_P.Text = speedP;
-                        textBox_Speed_I.Text = speedI;
-                        textBox_Speed_D.Text = speedD;
-                        ++countLine;
-
-                        //方向
-                        indexP = lines.ElementAt(countLine).IndexOf('P');
-                        indexI = lines.ElementAt(countLine).IndexOf(" I", StringComparison.Ordinal);
-                        indexD = lines.ElementAt(countLine).IndexOf(" D", StringComparison.Ordinal);
-                        var directionP = lines.ElementAt(countLine).Substring(indexP + 1, indexI - indexP - 1);
-                        var directionI = lines.ElementAt(countLine).Substring(indexI + 2, indexD - indexI - 1).Trim();
-                        var directionD = lines.ElementAt(countLine).Substring(indexD + 2);
-                        textBox_Direction_P.Text = directionP;
-                        textBox_Direction_I.Text = directionI;
-                        textBox_Direction_D.Text = directionD;
-                        ++countLine;
-                    }
-                    else if (carType == 1) //四轮车
-                    {
-                        var indexP = lines.ElementAt(countLine).IndexOf('P');
-                        var indexI = lines.ElementAt(countLine).IndexOf(" I", StringComparison.Ordinal);
-                        var indexD = lines.ElementAt(countLine).IndexOf(" D", StringComparison.Ordinal);
-
-                        //舵机
-                        var steerP = lines.ElementAt(countLine).Substring(indexP + 1, indexI - indexP - 1);
-                        var steerI = lines.ElementAt(countLine).Substring(indexI + 2, indexD - indexI - 1).Trim();
-                        var steerD = lines.ElementAt(countLine).Substring(indexD + 2);
-                        textBox_Steer_P.Text = steerP;
-                        textBox_Steer_I.Text = steerI;
-                        textBox_Steer_D.Text = steerD;
-                        ++countLine;
-
-                        //电机
-                        indexP = lines.ElementAt(countLine).IndexOf('P');
-                        indexI = lines.ElementAt(countLine).IndexOf(" I", StringComparison.Ordinal);
-                        indexD = lines.ElementAt(countLine).IndexOf(" D", StringComparison.Ordinal);
-                        var motorP = lines.ElementAt(countLine).Substring(indexP + 1, indexI - indexP - 1);
-                        var motorI = lines.ElementAt(countLine).Substring(indexI + 2, indexD - indexI - 1).Trim();
-                        var motorD = lines.ElementAt(countLine).Substring(indexD + 2);
-                        textBox_Motor_P.Text = motorP;
-                        textBox_Motor_I.Text = motorI;
-                        textBox_Motor_D.Text = motorD;
-                        ++countLine;
-                    }
-
-                    //自定义参数
-                    if (lines.ElementAt(countLine).Contains("DIY_Num"))
-                    {
-                        int diyNum = Convert.ToInt16(lines.ElementAt(countLine).Split(':').ElementAt(1));
-                        ++countLine;
-
-                        if (diyNum == Convert.ToInt16(textBox_DIY_Number.Text))
-                        {
-                            for (var i = 0; i < diyNum; i++)
-                            {
-                                var checkboxSelect = new CheckBox();
-                                checkboxSelect =
-                                    (CheckBox)
-                                        panel_add_DIYControls.Controls.Find("checkBox_Def" + Convert.ToString(i + 1),
-                                            true)[0];
-
-                                var txtBox = new TextBox[2]; //用控件数组来定义每一行的TextBox,总共3个TextBox
-                                txtBox[0] =
-                                    (TextBox)
-                                        panel_add_DIYControls.Controls.Find("txtName" + Convert.ToString(i + 1), true)[0
-                                            ];
-                                txtBox[1] =
-                                    (TextBox)
-                                        panel_add_DIYControls.Controls.Find("txtValue" + Convert.ToString(i + 1), true)[
-                                            0];
-
-                                var numberName = lines.ElementAt(countLine).Split(':').ElementAt(0);
-                                var numberValue = lines.ElementAt(countLine).Split(':').ElementAt(1);
-
-                                txtBox[0].Text = numberName;
-                                txtBox[1].Text = numberValue;
-
-                                ++countLine;
-                            }
-                        }
-                        else
-                        {
-                            var txtBoxName = new TextBox();
-                            var txtBoxValue = new TextBox();
-                            var checkboxSelect = new CheckBox();
-
-                            for (var i = 0; i < diyNum; i++)
-                            {
-                                //是否启用的选项
-                                checkboxSelect = new CheckBox();
-                                checkboxSelect.Size = new Size(50, 20);
-                                checkboxSelect.Location = new Point(10 + 70*0, 30*i); //textbox坐标
-                                checkboxSelect.Name = "checkBox_Def" + Convert.ToString(i + 1);
-                                checkboxSelect.Text = "";
-                                checkboxSelect.CheckedChanged += CheckboxSelectOnCheckedChanged;
-                                checkboxSelect.Checked = true;
-
-                                //名字
-                                txtBoxName = new TextBox();
-                                txtBoxName.Size = new Size(50, 50); //textbox大小                   
-                                txtBoxName.Location = new Point(10 + 70*1, 30*i); //textbox坐标
-                                txtBoxName.Name = "txtName" + Convert.ToString(i + 1); //设定控件名称
-                                txtBoxName.TextAlign = HorizontalAlignment.Center;
-                                txtBoxName.Text = lines.ElementAt(countLine).Split(':').ElementAt(0);
-                                txtBoxName.Enabled = true;
-
-                                //值
-                                txtBoxValue = new TextBox();
-                                txtBoxValue.Size = new Size(50, 50); //textbox大小                   
-                                txtBoxValue.Location = new Point(10 + 70*2, 30*i); //textbox坐标
-                                txtBoxValue.Name = "txtValue" + Convert.ToString(i + 1); //设定控件名称
-                                txtBoxValue.Text = "1.00";
-                                txtBoxValue.TextAlign = HorizontalAlignment.Center;
-                                txtBoxValue.Enabled = true;
-                                txtBoxValue.Text = lines.ElementAt(countLine).Split(':').ElementAt(1);
-
-                                ++countLine;
-
-                                panel_add_DIYControls.Controls.Add(checkboxSelect);
-                                panel_add_DIYControls.Controls.Add(txtBoxName); //把"名字"加入到panel中
-                                panel_add_DIYControls.Controls.Add(txtBoxValue); //把"值"加入到panel中
-                            }
-                        }
-                    }
-
-                    //Scope
-                    for (var i = 0; i < ScopeNumber; i++) //首先清除所有的曲线数据
-                    {
-                        zedGrpahNames[i].listZed.RemoveRange(0, zedGrpahNames[i].listZed.Count);
-                    }
-
-                    if (lines.ElementAt(countLine).Contains("ScopeLineNumber"))
-                    {
-                        int scopeNum = Convert.ToInt16(lines.ElementAt(countLine).Split(':').ElementAt(1));
-                        ++countLine;
-
-                        for (var i = 0; i < scopeNum; i++)
-                        {
-                            if (lines.ElementAt(countLine).Contains("ScopeLineOrder")) //第几个曲线
-                            {
-                                int scopeOrder = Convert.ToInt16(lines.ElementAt(countLine).Split(':').ElementAt(1));
-                                ++countLine;
-                                if (lines.ElementAt(countLine).Contains("PointNumber")) //点数量
-                                {
-                                    int scopePointNum =
-                                        Convert.ToInt16(lines.ElementAt(countLine).Split(':').ElementAt(1));
-                                    ++countLine;
-
-                                    char[] charsplit = {'(', ',', ')'};
-                                    var xyPoint = lines.ElementAt(countLine)
-                                        .Split(charsplit, StringSplitOptions.RemoveEmptyEntries);
-                                    ++countLine;
-
-                                    for (var j = 0; j < scopePointNum; j++)
-                                    {
-                                        var x = Convert.ToDouble(xyPoint[j*2]);
-                                        var y = Convert.ToDouble(xyPoint[j*2 + 1]);
-                                        zedGrpahNames[scopeOrder].listZed.Add(x, y);
-                                        zedGrpahNames[scopeOrder].zedPoint.ZedListX.Add(x);
-                                        zedGrpahNames[scopeOrder].zedPoint.ZedListY.Add(y);
-                                    }
-                                }
-                            }
-                        }
-                        //UpdateScope Here
-                        zedGraph_local.GraphPane.XAxis.Scale.MaxAuto = true;
-                        zedGraph_local.GraphPane.XAxis.Scale.MinAuto = true;
-                        zedGraph_local.GraphPane.YAxis.Scale.MaxAuto = true;
-                        zedGraph_local.GraphPane.YAxis.Scale.MinAuto = true;
-
-                        zedGraph_local.AxisChange();
-                        zedGraph_local.Invalidate();
-                    } //Scope End
+                    ReadPIDFromText(lines, countLine);
+                    ReadPIDFromText(lines, countLine);
+                    ReadScopeFromText(lines, countLine);
                 }
                 _isLoadHistory = true;
 
                 sr.Close();
                 fs.Close();
             }
+        }
+
+        private void ReadPIDFromText(List<string> lines, int countLine)
+        {
+            int carType = Convert.ToInt16(lines.ElementAt(countLine).Split(':').ElementAt(1));
+            countLine++;
+
+            if (carType == 0) //直立车
+            {
+                ReadBalancePIDFromText(lines, countLine);
+            }
+            else if (carType == 1) //四轮车
+            {
+                ReadFourwheelPIDFromText(lines, countLine);
+            }
+        }
+
+        private void ReadBalancePIDFromText(List<string> lines, int countLine)
+        {
+            var indexP = lines.ElementAt(countLine).IndexOf('P');
+            var indexI = lines.ElementAt(countLine).IndexOf(" I", StringComparison.Ordinal);
+            var indexD = lines.ElementAt(countLine).IndexOf(" D", StringComparison.Ordinal);
+
+            //直立
+            var standP = lines.ElementAt(countLine).Substring(indexP + 1, indexI - indexP - 1);
+            var standI = lines.ElementAt(countLine).Substring(indexI + 2, indexD - indexI - 1).Trim();
+            var standD = lines.ElementAt(countLine).Substring(indexD + 2);
+            textBox_Stand_P.Text = standP;
+            textBox_Stand_I.Text = standI;
+            textBox_Stand_D.Text = standD;
+            ++countLine;
+
+            //速度
+            indexP = lines.ElementAt(countLine).IndexOf('P');
+            indexI = lines.ElementAt(countLine).IndexOf(" I", StringComparison.Ordinal);
+            indexD = lines.ElementAt(countLine).IndexOf(" D", StringComparison.Ordinal);
+            var speedP = lines.ElementAt(countLine).Substring(indexP + 1, indexI - indexP - 1);
+            var speedI = lines.ElementAt(countLine).Substring(indexI + 2, indexD - indexI - 1).Trim();
+            var speedD = lines.ElementAt(countLine).Substring(indexD + 2);
+            textBox_Speed_P.Text = speedP;
+            textBox_Speed_I.Text = speedI;
+            textBox_Speed_D.Text = speedD;
+            ++countLine;
+
+            //方向
+            indexP = lines.ElementAt(countLine).IndexOf('P');
+            indexI = lines.ElementAt(countLine).IndexOf(" I", StringComparison.Ordinal);
+            indexD = lines.ElementAt(countLine).IndexOf(" D", StringComparison.Ordinal);
+            var directionP = lines.ElementAt(countLine).Substring(indexP + 1, indexI - indexP - 1);
+            var directionI = lines.ElementAt(countLine).Substring(indexI + 2, indexD - indexI - 1).Trim();
+            var directionD = lines.ElementAt(countLine).Substring(indexD + 2);
+            textBox_Direction_P.Text = directionP;
+            textBox_Direction_I.Text = directionI;
+            textBox_Direction_D.Text = directionD;
+            ++countLine;
+        }
+        private void ReadFourwheelPIDFromText(List<string> lines, int countLine)
+        {
+            var indexP = lines.ElementAt(countLine).IndexOf('P');
+            var indexI = lines.ElementAt(countLine).IndexOf(" I", StringComparison.Ordinal);
+            var indexD = lines.ElementAt(countLine).IndexOf(" D", StringComparison.Ordinal);
+
+            //舵机
+            var steerP = lines.ElementAt(countLine).Substring(indexP + 1, indexI - indexP - 1);
+            var steerI = lines.ElementAt(countLine).Substring(indexI + 2, indexD - indexI - 1).Trim();
+            var steerD = lines.ElementAt(countLine).Substring(indexD + 2);
+            textBox_Steer_P.Text = steerP;
+            textBox_Steer_I.Text = steerI;
+            textBox_Steer_D.Text = steerD;
+            ++countLine;
+
+            //电机
+            indexP = lines.ElementAt(countLine).IndexOf('P');
+            indexI = lines.ElementAt(countLine).IndexOf(" I", StringComparison.Ordinal);
+            indexD = lines.ElementAt(countLine).IndexOf(" D", StringComparison.Ordinal);
+            var motorP = lines.ElementAt(countLine).Substring(indexP + 1, indexI - indexP - 1);
+            var motorI = lines.ElementAt(countLine).Substring(indexI + 2, indexD - indexI - 1).Trim();
+            var motorD = lines.ElementAt(countLine).Substring(indexD + 2);
+            textBox_Motor_P.Text = motorP;
+            textBox_Motor_I.Text = motorI;
+            textBox_Motor_D.Text = motorD;
+            ++countLine;
+        }
+
+        private void ReadDIYFromText(List<string> lines, int countLine)
+        {
+            //自定义参数
+            if (lines.ElementAt(countLine).Contains("DIY_Num"))
+            {
+                int diyNum = Convert.ToInt16(lines.ElementAt(countLine).Split(':').ElementAt(1));
+                ++countLine;
+
+                if (diyNum == Convert.ToInt16(textBox_DIY_Number.Text))
+                {
+                    for (var i = 0; i < diyNum; i++)
+                    {
+                        var checkboxSelect = new CheckBox();
+                        checkboxSelect =
+                            (CheckBox)
+                                panel_add_DIYControls.Controls.Find("checkBox_Def" + Convert.ToString(i + 1),
+                                    true)[0];
+
+                        var txtBox = new TextBox[2]; //用控件数组来定义每一行的TextBox,总共3个TextBox
+                        txtBox[0] =
+                            (TextBox)
+                                panel_add_DIYControls.Controls.Find("txtName" + Convert.ToString(i + 1), true)[0
+                                    ];
+                        txtBox[1] =
+                            (TextBox)
+                                panel_add_DIYControls.Controls.Find("txtValue" + Convert.ToString(i + 1), true)[
+                                    0];
+
+                        var numberName = lines.ElementAt(countLine).Split(':').ElementAt(0);
+                        var numberValue = lines.ElementAt(countLine).Split(':').ElementAt(1);
+
+                        txtBox[0].Text = numberName;
+                        txtBox[1].Text = numberValue;
+
+                        ++countLine;
+                    }
+                }
+                else
+                {
+                    var txtBoxName = new TextBox();
+                    var txtBoxValue = new TextBox();
+                    var checkboxSelect = new CheckBox();
+
+                    for (var i = 0; i < diyNum; i++)
+                    {
+                        //是否启用的选项
+                        checkboxSelect = new CheckBox();
+                        checkboxSelect.Size = new Size(50, 20);
+                        checkboxSelect.Location = new Point(10 + 70 * 0, 30 * i); //textbox坐标
+                        checkboxSelect.Name = "checkBox_Def" + Convert.ToString(i + 1);
+                        checkboxSelect.Text = "";
+                        checkboxSelect.CheckedChanged += CheckboxSelectOnCheckedChanged;
+                        checkboxSelect.Checked = true;
+
+                        //名字
+                        txtBoxName = new TextBox();
+                        txtBoxName.Size = new Size(50, 50); //textbox大小                   
+                        txtBoxName.Location = new Point(10 + 70 * 1, 30 * i); //textbox坐标
+                        txtBoxName.Name = "txtName" + Convert.ToString(i + 1); //设定控件名称
+                        txtBoxName.TextAlign = HorizontalAlignment.Center;
+                        txtBoxName.Text = lines.ElementAt(countLine).Split(':').ElementAt(0);
+                        txtBoxName.Enabled = true;
+
+                        //值
+                        txtBoxValue = new TextBox();
+                        txtBoxValue.Size = new Size(50, 50); //textbox大小                   
+                        txtBoxValue.Location = new Point(10 + 70 * 2, 30 * i); //textbox坐标
+                        txtBoxValue.Name = "txtValue" + Convert.ToString(i + 1); //设定控件名称
+                        txtBoxValue.Text = "1.00";
+                        txtBoxValue.TextAlign = HorizontalAlignment.Center;
+                        txtBoxValue.Enabled = true;
+                        txtBoxValue.Text = lines.ElementAt(countLine).Split(':').ElementAt(1);
+
+                        ++countLine;
+
+                        panel_add_DIYControls.Controls.Add(checkboxSelect);
+                        panel_add_DIYControls.Controls.Add(txtBoxName); //把"名字"加入到panel中
+                        panel_add_DIYControls.Controls.Add(txtBoxValue); //把"值"加入到panel中
+                    }
+                }
+            }
+        }
+
+        private void ReadScopeFromText(List<string> lines, int countLine)
+        {
+            //Scope
+            for (var i = 0; i < ScopeNumber; i++) //首先清除所有的曲线数据
+            {
+                zedGrpahNames[i].listZed.RemoveRange(0, zedGrpahNames[i].listZed.Count);
+            }
+
+            if (lines.ElementAt(countLine).Contains("ScopeLineNumber"))
+            {
+                int scopeNum = Convert.ToInt16(lines.ElementAt(countLine).Split(':').ElementAt(1));
+                ++countLine;
+
+                for (var i = 0; i < scopeNum; i++)
+                {
+                    if (lines.ElementAt(countLine).Contains("ScopeLineOrder")) //第几个曲线
+                    {
+                        int scopeOrder = Convert.ToInt16(lines.ElementAt(countLine).Split(':').ElementAt(1));
+                        ++countLine;
+                        if (lines.ElementAt(countLine).Contains("PointNumber")) //点数量
+                        {
+                            int scopePointNum =
+                                Convert.ToInt16(lines.ElementAt(countLine).Split(':').ElementAt(1));
+                            ++countLine;
+
+                            char[] charsplit = { '(', ',', ')' };
+                            var xyPoint = lines.ElementAt(countLine)
+                                .Split(charsplit, StringSplitOptions.RemoveEmptyEntries);
+                            ++countLine;
+
+                            for (var j = 0; j < scopePointNum; j++)
+                            {
+                                var x = Convert.ToDouble(xyPoint[j * 2]);
+                                var y = Convert.ToDouble(xyPoint[j * 2 + 1]);
+                                zedGrpahNames[scopeOrder].listZed.Add(x, y);
+                                zedGrpahNames[scopeOrder].zedPoint.ZedListX.Add(x);
+                                zedGrpahNames[scopeOrder].zedPoint.ZedListY.Add(y);
+                            }
+                        }
+                    }
+                }
+                //UpdateScope Here
+                zedGraph_local.GraphPane.XAxis.Scale.MaxAuto = true;
+                zedGraph_local.GraphPane.XAxis.Scale.MinAuto = true;
+                zedGraph_local.GraphPane.YAxis.Scale.MaxAuto = true;
+                zedGraph_local.GraphPane.YAxis.Scale.MinAuto = true;
+
+                refleshZedPane(zedGraph_local);
+            } //Scope End
         }
 
         #endregion

@@ -56,6 +56,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CameraAlgorithm.cs" />
+    <Compile Include="CCDAlgorithm.cs" />
     <Compile Include="Configuration.cs">
       <SubType>Form</SubType>
     </Compile>
