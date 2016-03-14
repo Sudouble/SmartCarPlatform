@@ -163,8 +163,10 @@ namespace Freescale_debug
         #region 6.CCD图像
         public void CCD_DrawActual(PictureBox pictureBoxImage)
         {
-            var bitmap = new Bitmap(ccdStr.Length, pictureBoxImage.Height);
+            if (ccdStr.Length != ccdLength)
+                return;
 
+            var bitmap = new Bitmap(ccdStr.Length, pictureBoxImage.Height);
             var bitmapData =
                 bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height),
                     ImageLockMode.ReadWrite, bitmap.PixelFormat);
@@ -201,6 +203,9 @@ namespace Freescale_debug
 
         public void CCD_DrawPath(Bitmap bitmap, PictureBox pictureBoxImage)
         {
+            if (ccdStr.Length != ccdLength)
+                return;
+
             var bitmapData =
                 bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height),
                     ImageLockMode.ReadWrite, bitmap.PixelFormat);
