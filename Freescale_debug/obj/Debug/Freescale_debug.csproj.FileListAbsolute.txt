@@ -34,9 +34,9 @@ F:\Project_Compotition\6.MyFreescal_10th\New_for_platform\FreescalePlatform\Free
 F:\Project_Compotition\6.MyFreescal_10th\New_for_platform\FreescalePlatform\Freescale_debug\bin\Debug\Freescale_debug.pdb
 F:\Project_Compotition\6.MyFreescal_10th\New_for_platform\FreescalePlatform\Freescale_debug\bin\Debug\Leomon.dll
 F:\Project_Compotition\6.MyFreescal_10th\New_for_platform\FreescalePlatform\Freescale_debug\bin\Debug\ZedGraph.dll
-F:\Project_Compotition\6.MyFreescal_10th\New_for_platform\FreescalePlatform\Freescale_debug\obj\Debug\Freescale_debug.csprojResolveAssemblyReference.cache
 F:\Project_Compotition\6.MyFreescal_10th\New_for_platform\FreescalePlatform\Freescale_debug\obj\Debug\Freescale_debug.Form1.resources
 F:\Project_Compotition\6.MyFreescal_10th\New_for_platform\FreescalePlatform\Freescale_debug\obj\Debug\Freescale_debug.LoadingPage.resources
 F:\Project_Compotition\6.MyFreescal_10th\New_for_platform\FreescalePlatform\Freescale_debug\obj\Debug\Freescale_debug.Properties.Resources.resources
 F:\Project_Compotition\6.MyFreescal_10th\New_for_platform\FreescalePlatform\Freescale_debug\obj\Debug\Freescale_debug.ZedGraphSingleWindow.resources
 F:\Project_Compotition\6.MyFreescal_10th\New_for_platform\FreescalePlatform\Freescale_debug\obj\Debug\Freescale_debug.csproj.GenerateResource.Cache
+F:\Project_Compotition\6.MyFreescal_10th\New_for_platform\FreescalePlatform\Freescale_debug\obj\Debug\Freescale_debug.csprojResolveAssemblyReference.cache

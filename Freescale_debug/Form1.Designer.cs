@@ -140,10 +140,10 @@ namespace Freescale_debug
             this.checkBox_CCD_ONOFF = new System.Windows.Forms.CheckBox();
             this.comboBox1 = new System.Windows.Forms.ComboBox();
             this.label_CCD_Width = new System.Windows.Forms.Label();
-            this.pictureBox_CCD_deal = new System.Windows.Forms.PictureBox();
+            this.pictureBox_CCD2 = new System.Windows.Forms.PictureBox();
             this.label27 = new System.Windows.Forms.Label();
             this.pictureBox_CCD_Path = new System.Windows.Forms.PictureBox();
-            this.pictureBox_CCD_Actual = new System.Windows.Forms.PictureBox();
+            this.pictureBox_CCD1 = new System.Windows.Forms.PictureBox();
             this.label28 = new System.Windows.Forms.Label();
             this.mySerialPort = new System.IO.Ports.SerialPort(this.components);
             this.timer_autoSend = new System.Windows.Forms.Timer(this.components);
@@ -196,9 +196,9 @@ namespace Freescale_debug
             this.tabPage_CCD.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_CCD3)).BeginInit();
             this.groupBox3.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox_CCD_deal)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox_CCD2)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_CCD_Path)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox_CCD_Actual)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox_CCD1)).BeginInit();
             this.groupBox_portSetting.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
@@ -1229,10 +1229,10 @@ namespace Freescale_debug
             this.tabPage_CCD.Controls.Add(this.label31);
             this.tabPage_CCD.Controls.Add(this.label30);
             this.tabPage_CCD.Controls.Add(this.groupBox3);
-            this.tabPage_CCD.Controls.Add(this.pictureBox_CCD_deal);
+            this.tabPage_CCD.Controls.Add(this.pictureBox_CCD2);
             this.tabPage_CCD.Controls.Add(this.label27);
             this.tabPage_CCD.Controls.Add(this.pictureBox_CCD_Path);
-            this.tabPage_CCD.Controls.Add(this.pictureBox_CCD_Actual);
+            this.tabPage_CCD.Controls.Add(this.pictureBox_CCD1);
             this.tabPage_CCD.Location = new System.Drawing.Point(4, 22);
             this.tabPage_CCD.Name = "tabPage_CCD";
             this.tabPage_CCD.Padding = new System.Windows.Forms.Padding(3);
@@ -1323,17 +1323,17 @@ namespace Freescale_debug
             this.label_CCD_Width.TabIndex = 3;
             this.label_CCD_Width.Text = "CCD宽度：None";
             // 
-            // pictureBox_CCD_deal
+            // pictureBox_CCD2
             // 
-            this.pictureBox_CCD_deal.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.pictureBox_CCD2.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.pictureBox_CCD_deal.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pictureBox_CCD_deal.Location = new System.Drawing.Point(246, 99);
-            this.pictureBox_CCD_deal.Name = "pictureBox_CCD_deal";
-            this.pictureBox_CCD_deal.Size = new System.Drawing.Size(484, 88);
-            this.pictureBox_CCD_deal.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-            this.pictureBox_CCD_deal.TabIndex = 6;
-            this.pictureBox_CCD_deal.TabStop = false;
+            this.pictureBox_CCD2.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.pictureBox_CCD2.Location = new System.Drawing.Point(246, 99);
+            this.pictureBox_CCD2.Name = "pictureBox_CCD2";
+            this.pictureBox_CCD2.Size = new System.Drawing.Size(484, 88);
+            this.pictureBox_CCD2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pictureBox_CCD2.TabIndex = 6;
+            this.pictureBox_CCD2.TabStop = false;
             // 
             // label27
             // 
@@ -1357,17 +1357,17 @@ namespace Freescale_debug
             this.pictureBox_CCD_Path.TabIndex = 1;
             this.pictureBox_CCD_Path.TabStop = false;
             // 
-            // pictureBox_CCD_Actual
+            // pictureBox_CCD1
             // 
-            this.pictureBox_CCD_Actual.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.pictureBox_CCD1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.pictureBox_CCD_Actual.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pictureBox_CCD_Actual.Location = new System.Drawing.Point(246, 6);
-            this.pictureBox_CCD_Actual.Name = "pictureBox_CCD_Actual";
-            this.pictureBox_CCD_Actual.Size = new System.Drawing.Size(484, 87);
-            this.pictureBox_CCD_Actual.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-            this.pictureBox_CCD_Actual.TabIndex = 0;
-            this.pictureBox_CCD_Actual.TabStop = false;
+            this.pictureBox_CCD1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.pictureBox_CCD1.Location = new System.Drawing.Point(246, 6);
+            this.pictureBox_CCD1.Name = "pictureBox_CCD1";
+            this.pictureBox_CCD1.Size = new System.Drawing.Size(484, 87);
+            this.pictureBox_CCD1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pictureBox_CCD1.TabIndex = 0;
+            this.pictureBox_CCD1.TabStop = false;
             // 
             // label28
             // 
@@ -1684,9 +1684,9 @@ namespace Freescale_debug
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_CCD3)).EndInit();
             this.groupBox3.ResumeLayout(false);
             this.groupBox3.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox_CCD_deal)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox_CCD2)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_CCD_Path)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox_CCD_Actual)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox_CCD1)).EndInit();
             this.groupBox_portSetting.ResumeLayout(false);
             this.groupBox_portSetting.PerformLayout();
             this.groupBox1.ResumeLayout(false);
@@ -1741,7 +1741,7 @@ namespace Freescale_debug
         private RadioButton radioButton_electromagnetism;
         private PictureBox pictureBox_CameraActual;
         private PictureBox pictureBox_CCD_Path;
-        private PictureBox pictureBox_CCD_Actual;
+        private PictureBox pictureBox_CCD1;
         private GroupBox groupBox_BalanceCar;
         private GroupBox groupBox_Balance_Direction;
         private TextBox textBox_Direction_D;
@@ -1824,7 +1824,7 @@ namespace Freescale_debug
         private Button button_ClearDrawing;
         private Label label29;
         private Button button_force_stop;
-        private PictureBox pictureBox_CCD_deal;
+        private PictureBox pictureBox_CCD2;
         private Label label30;
         private GroupBox groupBox3;
         private Label label31;

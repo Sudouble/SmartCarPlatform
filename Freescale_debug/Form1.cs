@@ -334,20 +334,7 @@ namespace Freescale_debug
         {
             try
             {
-                if (tmpSendHandle.Flag == 1 && _queueEchoControl.Count > 0)
-                {
-                    var send_message = (GetEchoForm) _queueEchoControl.Dequeue();
-                    tmpSendHandle = send_message;
-                }
-
-                if (tmpSendHandle.Flag == 0)
-                {
-                    mySerialPort.Write(tmpSendHandle.Messgae);
-                    label28.Text = @"Loading..." + retryCount + @" Times" +
-                                   @"队列长度：" + _queueEchoControl.Count;
-
-                    retryCount++;
-                }
+                DequeueAndSendport();
             }
             catch (Exception ee)
             {
@@ -355,429 +342,367 @@ namespace Freescale_debug
             }
         }
 
+        private void DequeueAndSendport()
+        {
+            if (tmpSendHandle.Flag == 1 && _queueEchoControl.Count > 0)
+            {
+                var send_message = (GetEchoForm)_queueEchoControl.Dequeue();
+                tmpSendHandle = send_message;
+            }
+
+            if (tmpSendHandle.Flag == 0)
+            {
+                mySerialPort.Write(tmpSendHandle.Messgae);
+                label28.Text = @"Loading..." + retryCount + @" Times" +
+                               @"队列长度：" + _queueEchoControl.Count;
+                retryCount++;
+            }
+        }
+
         private void UnPakageReceived(string recvStr, List<int> recBuff)
         {
             // 1 2 3    45 6 7               8
             //#|1|3.31|0||1|1|P1200I2100D3310|$
-            //需要找到其中的长度
-            var count_length = 0;
-            if (recvStr != null)
+            if (ReceiveValidateCheck(recvStr))
             {
-                int headCheck = recvStr.IndexOf("#|");
-                int endCheck = recvStr.LastIndexOf("|$");
-                if (headCheck != -1 && endCheck != -1)
-                {
-                    //截取需要的段：
-                    var needed_str = recvStr.Substring(headCheck, endCheck - headCheck + 2);
+                int headCheck = recvStr.IndexOf("#|", StringComparison.Ordinal);
+                int endCheck = recvStr.LastIndexOf("|$", StringComparison.Ordinal);
+                string messagePack = recvStr.Substring(headCheck, endCheck - headCheck + 2);
 
-                    string[] splitted_Message;
-                    //判断是不是CCD或者摄像头数据
-                    var judge_CDD_Camera = needed_str.Split('|');
-                    if (judge_CDD_Camera.Length > 1 &&
-                        Convert.ToInt16(judge_CDD_Camera.ElementAt(1)) == 1 || //camera
-                        Convert.ToInt16(judge_CDD_Camera.ElementAt(1)) == 2) //ccd
+                string[] splittedMessage = messagePack.Split('|');
+
+                if (SingleMessageValidateCheck(splittedMessage))
+                {
+                    DeliveryReceivedToControls(splittedMessage, messagePack, recBuff);
+                }
+            }
+        }
+
+        private Boolean ReceiveValidateCheck(string recvStr)
+        {
+            int headCheck = recvStr.IndexOf("#|", StringComparison.Ordinal);
+            int endCheck = recvStr.LastIndexOf("|$", StringComparison.Ordinal);
+            return headCheck != -1 && endCheck != -1;
+        }
+
+        private Boolean SingleMessageValidateCheck(string[] splittedMessage)
+        {
+            for (var i = 0; 4 * (i + 1) < splittedMessage.Length; i++)
+            {
+                //加入是空字符串，舍弃本次
+                if (splittedMessage.ElementAt(1 + 4 * i).Trim() == "" ||
+                    splittedMessage.ElementAt(2 + 4 * i).Trim() == "")
+                    return false;
+
+                int father = Convert.ToInt16(splittedMessage.ElementAt(1 + 4 * i));
+                int child = Convert.ToInt16(splittedMessage.ElementAt(2 + 4 * i));
+
+                //表示不符合数据格式要求
+                if ((father < 0 || father > 8) && (child < 0 || child > 200))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        private void DeliveryReceivedToControls(string[] splittedMessage, string neededStr, List<int> recBuff)
+        {
+            int countLength = 0;
+            const int EACH_MESSAGE_NUMBER = 4;
+            countLength += neededStr.Where((t, i) => neededStr.ElementAt(i) == '|').Count();
+            countLength = countLength / EACH_MESSAGE_NUMBER;
+
+            for (var k = 0; k < countLength; k++)
+            {
+                if (Convert.ToInt16(splittedMessage.ElementAt(1 + EACH_MESSAGE_NUMBER * k)) == 1 &&
+                    checkBox_Camera_ONOFF.Checked)
+                //摄像头数据
+                {
+                    CameraAlgorithm cameraAlgorithm = new CameraAlgorithm(neededStr);
+
+                    cameraAlgorithm.ApartMessage();
+
+                    cameraAlgorithm.Camera_DrawActual(pictureBox_CameraActual);
+                }
+                else if (Convert.ToInt16(splittedMessage.ElementAt(1 + 4 * k)) == 2 &&
+                    checkBox_CCD_ONOFF.Checked)
+                //CCD数据
+                {
+                    CCDAlgorithm ccdAlgorithm = new CCDAlgorithm(neededStr, recBuff);
+
+                    ccdAlgorithm.ApartMessage();
+
+                    int length = ccdAlgorithm.GetCCDLength();
+                    label_CCD_Width.Text = @"CCD宽度：" + length;
+
+                    if (Convert.ToInt16(splittedMessage.ElementAt(2 + 4 * k)) == 1) //CCD1
                     {
-                        count_length = 4;
+                        ccdAlgorithm.CCD_DrawActual(pictureBox_CCD1);
+
+                        //绘制路径曲线
+                        ccdAlgorithm.CCD_DrawPath(_bitmapOld, pictureBox_CCD_Path);
+                    }
+                    else if (Convert.ToInt16(splittedMessage.ElementAt(2 + 4 * k)) == 2) //CCD2
+                    {
+                        ccdAlgorithm.CCD_DrawActual(pictureBox_CCD2);
+                    }
+                    else if (Convert.ToInt16(splittedMessage.ElementAt(2 + 4 * k)) == 3) //CCD3
+                    {
+                        ccdAlgorithm.CCD_DrawActual(pictureBox_CCD3);
+                    }
+                }
+                else if (Convert.ToInt16(splittedMessage.ElementAt(1 + 4 * k)) == 3) //实时参数
+                {
+                    int Elect_num = Convert.ToInt16(splittedMessage.ElementAt(2 + 4 * k));
+                    if (Elect_num <= Convert.ToInt16(textBox_Electricity_Number.Text)) //发送的传感器数据比现有的小
+                    {
+                        var txtBox = new TextBox();
+                        txtBox =
+                            (TextBox)
+                                panel_Electricity.Controls.Find(
+                                    "txtElectValue" + Convert.ToString(Elect_num), true)[0];
+
+                        //将参数赋值到相应的版块
+                        var value = Convert.ToDouble(splittedMessage.ElementAt(3 + 4 * k)) / 1000;
+                        txtBox.Text = value.ToString();
+                    }
+                }
+                #region 示波器显示部分
+
+                else if (Convert.ToInt16(splittedMessage.ElementAt(1 + 4 * k)) == 4) //传送到示波器的数据
+                {
+                    var hasChecked_Item = false;
+
+                    var total = ScopeNumber;
+                    var checkDrawing = new CheckBox[ScopeNumber];
+                    var txtBox = new TextBox[ScopeNumber]; //用控件数组来定义每一行的TextBox,总共3个TextBox
+                    var buttonNewForm = new Button[ScopeNumber];
+
+                    if (_isLoadHistory)
+                    {
+                        _isLoadHistory = false;
+                        for (var i = 0; i < ScopeNumber; i++) //首先清除所有的曲线数据
+                        {
+                            zedGrpahNames[i].listZed.RemoveRange(0, zedGrpahNames[i].listZed.Count);
+                            zedGrpahNames[i].x = -1;
+                        }
+                    }
+
+                    for (var i = 0; i < total; i++)
+                    {
+                        checkDrawing[i] =
+                            (CheckBox)
+                                panel_Scope.Controls.Find("checkBox_Def" + Convert.ToString(i + 1), true)[0];
+
+                        txtBox[i] =
+                            (TextBox)
+                                panel_Scope.Controls.Find("txtName" + Convert.ToString(i + 1), true)[0];
+
+                        buttonNewForm[i] =
+                            (Button)
+                                panel_Scope.Controls.Find("buttonDraw" + Convert.ToString(i + 1), true)[0];
+
+                        if (checkDrawing[i].Checked && hasChecked_Item == false)
+                        {
+                            //如果有被选择的话，刷新绘图窗口
+                            hasChecked_Item = true;
+                            timer_fresh.Start();
+                        }
+                    }
+
+                    for (var i = 0; i < total; i++)
+                    {
+                        if (checkDrawing[i].Checked &&
+                            Convert.ToInt16(splittedMessage.ElementAt(2 + 4 * k)) == i + 1)
+                        {
+                            hasChecked_Item = true;
+                            //ZedGraph绘图
+                            var j = Convert.ToInt16(splittedMessage.ElementAt(2 + 4 * k)) - 1;
+                            var value = Convert.ToDouble(splittedMessage.ElementAt(3 + 4 * k)) / 1000;
+                            zedGrpahNames[i].ValueZed = value;
+
+                            if ((_xmaxScale - zedGrpahNames[j].x) < (_xmaxScale / 5)) //自动改变坐标轴范围
+                            {
+                                _xmaxScale += _xmaxScale / 5;
+                                zedGraph_local.GraphPane.XAxis.Scale.Max = _xmaxScale;
+                            }
+                            if (_ymaxScale - zedGrpahNames[i].ValueZed < _ymaxScale / 5) //自动改变坐标轴范围
+                            {
+                                //YmaxScale += YmaxScale/5;
+                                _ymaxScale += -_ymaxScale + 1.3 * zedGrpahNames[i].ValueZed;
+                                zedGraph_local.GraphPane.YAxis.Scale.Max = _ymaxScale;
+                            }
+                            if (_yminScale - zedGrpahNames[i].ValueZed > _yminScale / 5) //自动改变坐标轴范围
+                            {
+                                _yminScale += _yminScale / 5;
+                                zedGraph_local.GraphPane.YAxis.Scale.Min = _yminScale;
+                            }
+
+                            zedGrpahNames[j].x += 1;
+
+                            zedGrpahNames[j].listZed.Add(Convert.ToDouble(zedGrpahNames[j].x), value);
+                            zedGrpahNames[i].zedPoint.ZedListX.Add(Convert.ToDouble(zedGrpahNames[j].x));
+                            zedGrpahNames[i].zedPoint.ZedListY.Add(value);
+
+                            if (zedGrpahNames[j].isSingleWindowShowed)
+                                coOb[i].CallEvent(zedGrpahNames[j].x, value);
+                        }
+                    }
+                }
+                #endregion
+
+                else if (Convert.ToInt16(splittedMessage.ElementAt(1 + 4 * k)) == 5) //大批量读取参数值(PID)
+                {
+                    int type = Convert.ToInt16(splittedMessage.ElementAt(2 + 4 * k));
+                    var valuePID = splittedMessage.ElementAt(3 + 4 * k);
+
+                    var indexP = valuePID.IndexOf('P');
+                    var indexI = valuePID.IndexOf("I", StringComparison.Ordinal);
+                    var indexD = valuePID.IndexOf("D", StringComparison.Ordinal);
+
+                    if (indexP != -1 && indexI != -1 && indexD != -1)
+                    {
+                        var valueP =
+                            (Convert.ToInt16(valuePID.Substring(indexP + 1, indexI - indexP - 1)) / 1000.0)
+                                .ToString(CultureInfo.InvariantCulture);
+                        var valueI =
+                            (Convert.ToInt16(valuePID.Substring(indexI + 1, indexD - indexI - 1)) / 1000.0)
+                                .ToString(CultureInfo.InvariantCulture);
+                        var valueD =
+                            (Convert.ToInt16(valuePID.Substring(indexD + 1)) / 1000.0).ToString(
+                                CultureInfo.InvariantCulture);
+
+                        if (type == 1)
+                        {
+                            textBox_Steer_P.Text = valueP;
+                            textBox_Steer_I.Text = valueI;
+                            textBox_Steer_D.Text = valueD;
+                        }
+                        else if (type == 2)
+                        {
+                            textBox_Motor_P.Text = valueP;
+                            textBox_Motor_I.Text = valueI;
+                            textBox_Motor_D.Text = valueD;
+                        }
+                        else if (type == 3)
+                        {
+                            textBox_Stand_P.Text = valueP;
+                            textBox_Stand_I.Text = valueI;
+                            textBox_Stand_D.Text = valueD;
+                        }
+                        else if (type == 4)
+                        {
+                            textBox_Speed_P.Text = valueP;
+                            textBox_Speed_I.Text = valueI;
+                            textBox_Speed_D.Text = valueD;
+                        }
+                        else if (type == 5)
+                        {
+                            textBox_Direction_P.Text = valueP;
+                            textBox_Direction_I.Text = valueI;
+                            textBox_Direction_D.Text = valueD;
+                        }
+                    }
+                }
+                else if (Convert.ToInt16(splittedMessage.ElementAt(1 + 4 * k)) == 6) //大批量读取参数值(diy)
+                {
+                    int child = Convert.ToInt16(splittedMessage.ElementAt(2 + 4 * k));
+                    var valueDIY =
+                        (Convert.ToDouble(splittedMessage.ElementAt(3 + 4 * k)) / 1000.0).ToString(
+                            CultureInfo.InvariantCulture);
+
+                    //给相应控件赋值
+                    var total = Convert.ToInt32(textBox_DIY_Number.Text);
+
+                    if (child < total)
+                    {
+                        var checkboxSelect = new CheckBox();
+                        checkboxSelect =
+                            (CheckBox)
+                                panel_add_DIYControls.Controls.Find(
+                                    "checkBox_Def" + Convert.ToString(child),
+                                    true)[0];
+
+                        var txtBox = new TextBox[2]; //用控件数组来定义每一行的TextBox,总共3个TextBox
+                        txtBox[0] =
+                            (TextBox)
+                                panel_add_DIYControls.Controls.Find("txtName" + Convert.ToString(child),
+                                    true)[0
+                                    ];
+                        txtBox[1] =
+                            (TextBox)
+                                panel_add_DIYControls.Controls.Find("txtValue" + Convert.ToString(child),
+                                    true)[
+                                        0];
+
+                        if (checkboxSelect.Checked)
+                        {
+                            txtBox[1].Text = valueDIY;
+                        }
+                    }
+                }
+                else if (Convert.ToInt16(splittedMessage.ElementAt(1 + 4 * k)) == 7 || //PID返回的设置信息
+                         Convert.ToInt16(splittedMessage.ElementAt(1 + 4 * k)) == 8) //自定义参数返回的设置信息
+                {
+                    //确保有收到ACK信号
+                    if (splittedMessage.ElementAt(3 + 4 * k).Contains("ACK"))
+                    {
+                        if (_queueEchoControl.Count == 0) //队列中无元素
+                        {
+                            //关闭进程
+                            //queueEchoControl.Dequeue();
+                            tmpSendHandle.Flag = 1;
+                            timer_Send2GetEcho.Stop();
+                        }
+                        else
+                        {
+                            tmpSendHandle.Flag = 1;
+                        }
+                        label28.Text = "OK!! + Remain:" + _queueEchoControl.Count;
+                        retryCount = 0;
+                    }
+                }
+                else if (Convert.ToInt16(splittedMessage.ElementAt(1 + 4 * k)) == 9) //紧急停车标志位
+                {
+                    //确保有收到ACK信号
+                    if (splittedMessage.ElementAt(3 + 4 * k).Contains("ACK"))
+                    {
+                        if (_queueEchoControl.Count == 0) //队列中无元素
+                        {
+                            //关闭进程
+                            //queueEchoControl.Dequeue();
+                            tmpSendHandle.Flag = 1;
+                            timer_Send2GetEcho.Stop();
+                        }
+                        else
+                        {
+                            tmpSendHandle.Flag = 1;
+                        }
+                        label28.Text = "OK! Stopped! " + _queueEchoControl.Count;
+                        retryCount = 0;
+                    }
+                }
+
+                if (Convert.ToInt16(splittedMessage.ElementAt(1 + 4 * k)) == 5 || //PID返回的ECHO信息
+                    Convert.ToInt16(splittedMessage.ElementAt(1 + 4 * k)) == 6) //自定义参数返回的ECHO信息
+                {
+                    //if (splitted_Message.ElementAt(3 + 4 * k).Contains("ACK"))
+                    //{
+                    if (_queueEchoControl.Count == 0) //队列中无元素
+                    {
+                        //关闭进程
+                        //queueEchoControl.Dequeue();
+                        tmpSendHandle.Flag = 1;
+                        timer_Send2GetEcho.Stop();
                     }
                     else
                     {
-                        //如果不是上面的数据类型就开始计数
-                        count_length += needed_str.Where((t, i) => needed_str.ElementAt(i) == '|').Count();
+                        tmpSendHandle.Flag = 1;
                     }
-
-                    splitted_Message = needed_str.Split('|');
-
-                    //审查分隔后的数据是不是符合要求——避免进不需要的判断（避免传输错误）
-                    for (var i = 0; 4*(i + 1) < splitted_Message.Length; i++)
-                    {
-                        int father = 0, child = 0;
-                        try
-                        {
-                            //加入是空字符串，舍弃本次
-                            if (splitted_Message.ElementAt(1 + 4*i).Trim() == "" ||
-                                splitted_Message.ElementAt(2 + 4*i).Trim() == "")
-                                return;
-
-                            father = Convert.ToInt16(splitted_Message.ElementAt(1 + 4*i));
-                            child = Convert.ToInt16(splitted_Message.ElementAt(2 + 4*i));
-                        }
-                        catch
-                        {
-                            //到了这里就表示解析出错了。
-                            return;
-                        }
-
-                        //表示不符合数据格式要求
-                        if ((father < 0 || father > 8) && (child < 0 || child > 200))
-                        {
-                            return;
-                        }
-                    }
-
-                    for (var k = 0; k < count_length/4; k++)
-                    {
-                        if (Convert.ToInt16(splitted_Message.ElementAt(1 + 4*k)) == 1 && checkBox_Camera_ONOFF.Checked)
-                            //摄像头数据
-                        {
-                            var firstRightIndex = needed_str.IndexOf('(');
-                            var indexEnd = needed_str.LastIndexOf('|');
-                            var cameraMessgageAdd = needed_str.Substring(firstRightIndex,
-                                indexEnd - firstRightIndex);
-
-                            var leftIndex = cameraMessgageAdd.IndexOf('(');
-                            var middleIndex = cameraMessgageAdd.IndexOf('+');
-                            var rightIndex = cameraMessgageAdd.IndexOf(')');
-                            int widthCamera =
-                                Convert.ToInt16(cameraMessgageAdd.Substring(leftIndex + 1, middleIndex - leftIndex - 1));
-                            int heightCamera =
-                                Convert.ToInt16(cameraMessgageAdd.Substring(middleIndex + 1,
-                                    rightIndex - middleIndex - 1));
-                            var cameraData = cameraMessgageAdd.Substring(rightIndex + 1);
-
-                            //label_CCD_Width.Text = @"CCD宽度：" + length;
-
-                            if (cameraData.Length == widthCamera*heightCamera)
-                            {
-                                //========================================================================================
-                                //很牛的LockBits方式！！比SetPixel效率高很多！
-                                var bitmap = new Bitmap(widthCamera, heightCamera);
-                                Camera_DrawActual(bitmap, cameraData);
-                                pictureBox_CameraActual.Image = bitmap; //在控件上显示图片
-                                //End of 实时图像显示====================================================================
-                                //显示轨迹部分
-
-                                if (Convert.ToInt16(splitted_Message.ElementAt(2 + 4*k)) == 1) //摄像头1
-                                {
-                                }
-                                else if (Convert.ToInt16(splitted_Message.ElementAt(2 + 4*k)) == 2) //摄像头2
-                                {
-                                }
-                                else if (Convert.ToInt16(splitted_Message.ElementAt(2 + 4*k)) == 3) //摄像头3
-                                {
-                                }
-                            }
-                        }
-                        else if (Convert.ToInt16(splitted_Message.ElementAt(1 + 4*k)) == 2 && checkBox_CCD_ONOFF.Checked)
-                            //CCD数据
-                        {
-                            var firstRightIndex = needed_str.IndexOf('(');
-                            var indexEnd = needed_str.LastIndexOf('|');
-                            var ccdMessgageAdd = needed_str.Substring(firstRightIndex,
-                                indexEnd - firstRightIndex);
-
-                            var leftIndex = ccdMessgageAdd.IndexOf('(');
-                            var rightIndex = ccdMessgageAdd.IndexOf(')');
-                            var length = ccdMessgageAdd.Substring(leftIndex + 1, rightIndex - leftIndex - 1);
-                            var ccdData = ccdMessgageAdd.Substring(rightIndex + 1);
-
-                            label_CCD_Width.Text = @"CCD宽度：" + length;
-
-                            if (ccdData.Length == Convert.ToInt16(length))
-                            {
-                                var greyValue = new List<int>();
-                                //找到recvBuff中的相应段
-                                for (var i = 0; i < _recieveBuff.Count - 6; i++)
-                                {
-                                    if (recBuff.ElementAt(i) == '#' &&
-                                        recBuff.ElementAt(i + 1) == '|' &&
-                                        recBuff.ElementAt(i + 2) == '2' &&
-                                        recBuff.ElementAt(i + 3) == '|' &&
-                                        //recBuff.ElementAt(i + 4) == '1' &&
-                                        recBuff.ElementAt(i + 5) == '|' &&
-                                        recBuff.ElementAt(i + 6) == '(')
-                                    {
-                                        for (var j = i + 11; j < ccdData.Length + i + 11; j++)
-                                        {
-                                            greyValue.Add(_recieveBuff[j]);
-                                        }
-                                        break;
-                                    }
-                                }
-
-                                //End of 实时图像显示====================================================================
-                                //显示轨迹部分
-
-                                if (Convert.ToInt16(splitted_Message.ElementAt(2 + 4*k)) == 1) //CCD1
-                                {
-                                    //========================================================================================
-                                    //很牛的LockBits方式！！比SetPixel效率高很多！
-                                    var bitmap = new Bitmap(ccdData.Length, pictureBox_CCD_Actual.Height);
-                                    CCD_DrawActual(bitmap, greyValue);
-                                    pictureBox_CCD_Actual.Image = bitmap; //在控件上显示图片
-
-                                    //绘制路径曲线
-                                    CCD_DrawPath(_bitmapOld, greyValue);
-                                    pictureBox_CCD_Path.Image = _bitmapOld;
-                                }
-                                else if (Convert.ToInt16(splitted_Message.ElementAt(2 + 4*k)) == 2) //CCD2
-                                {
-                                    //========================================================================================
-                                    //很牛的LockBits方式！！比SetPixel效率高很多！
-                                    var bitmap = new Bitmap(ccdData.Length, pictureBox_CCD_deal.Height);
-                                    CCD_DrawActual(bitmap, greyValue);
-                                    pictureBox_CCD_deal.Image = bitmap; //在控件上显示图片
-                                }
-                                else if (Convert.ToInt16(splitted_Message.ElementAt(2 + 4*k)) == 3) //CCD3
-                                {
-                                    var bitmap = new Bitmap(ccdData.Length, pictureBox_CCD_deal.Height);
-                                    CCD_DrawActual(bitmap, greyValue);
-                                    pictureBox_CCD3.Image = bitmap; //在控件上显示图片
-                                }
-                            }
-                        }
-                        else if (Convert.ToInt16(splitted_Message.ElementAt(1 + 4*k)) == 3) //实时参数
-                        {
-                            int Elect_num = Convert.ToInt16(splitted_Message.ElementAt(2 + 4*k));
-                            if (Elect_num <= Convert.ToInt16(textBox_Electricity_Number.Text)) //发送的传感器数据比现有的小
-                            {
-                                var txtBox = new TextBox();
-                                txtBox =
-                                    (TextBox)
-                                        panel_Electricity.Controls.Find(
-                                            "txtElectValue" + Convert.ToString(Elect_num), true)[0];
-
-                                //将参数赋值到相应的版块
-                                var value = Convert.ToDouble(splitted_Message.ElementAt(3 + 4*k))/1000;
-                                txtBox.Text = value.ToString();
-                            }
-                        }
-                            #region 示波器显示部分
-
-                        else if (Convert.ToInt16(splitted_Message.ElementAt(1 + 4*k)) == 4) //传送到示波器的数据
-                        {
-                            var hasChecked_Item = false;
-
-                            var total = ScopeNumber;
-                            var checkDrawing = new CheckBox[ScopeNumber];
-                            var txtBox = new TextBox[ScopeNumber]; //用控件数组来定义每一行的TextBox,总共3个TextBox
-                            var buttonNewForm = new Button[ScopeNumber];
-
-                            if (_isLoadHistory)
-                            {
-                                _isLoadHistory = false;
-                                for (var i = 0; i < ScopeNumber; i++) //首先清除所有的曲线数据
-                                {
-                                    zedGrpahNames[i].listZed.RemoveRange(0, zedGrpahNames[i].listZed.Count);
-                                    zedGrpahNames[i].x = -1;
-                                }
-                            }
-
-                            for (var i = 0; i < total; i++)
-                            {
-                                checkDrawing[i] =
-                                    (CheckBox)
-                                        panel_Scope.Controls.Find("checkBox_Def" + Convert.ToString(i + 1), true)[0];
-
-                                txtBox[i] =
-                                    (TextBox)
-                                        panel_Scope.Controls.Find("txtName" + Convert.ToString(i + 1), true)[0];
-
-                                buttonNewForm[i] =
-                                    (Button)
-                                        panel_Scope.Controls.Find("buttonDraw" + Convert.ToString(i + 1), true)[0];
-
-                                if (checkDrawing[i].Checked && hasChecked_Item == false)
-                                {
-                                    //如果有被选择的话，刷新绘图窗口
-                                    hasChecked_Item = true;
-                                    timer_fresh.Start();
-                                }
-                            }
-
-                            for (var i = 0; i < total; i++)
-                            {
-                                if (checkDrawing[i].Checked &&
-                                    Convert.ToInt16(splitted_Message.ElementAt(2 + 4*k)) == i + 1)
-                                {
-                                    hasChecked_Item = true;
-                                    //ZedGraph绘图
-                                    var j = Convert.ToInt16(splitted_Message.ElementAt(2 + 4*k)) - 1;
-                                    var value = Convert.ToDouble(splitted_Message.ElementAt(3 + 4*k))/1000;
-                                    zedGrpahNames[i].ValueZed = value;
-
-                                    if ((_xmaxScale - zedGrpahNames[j].x) < (_xmaxScale / 5)) //自动改变坐标轴范围
-                                    {
-                                        _xmaxScale += _xmaxScale/5;
-                                        zedGraph_local.GraphPane.XAxis.Scale.Max = _xmaxScale;
-                                    }
-                                    if (_ymaxScale - zedGrpahNames[i].ValueZed < _ymaxScale / 5) //自动改变坐标轴范围
-                                    {
-                                        //YmaxScale += YmaxScale/5;
-                                        _ymaxScale += -_ymaxScale + 1.3 * zedGrpahNames[i].ValueZed;
-                                        zedGraph_local.GraphPane.YAxis.Scale.Max = _ymaxScale;
-                                    }
-                                    if (_yminScale - zedGrpahNames[i].ValueZed > _yminScale / 5) //自动改变坐标轴范围
-                                    {
-                                        _yminScale += _yminScale/5;
-                                        zedGraph_local.GraphPane.YAxis.Scale.Min = _yminScale;
-                                    }
-
-                                    zedGrpahNames[j].x += 1;
-
-                                    zedGrpahNames[j].listZed.Add(Convert.ToDouble(zedGrpahNames[j].x), value);
-                                    zedGrpahNames[i].zedPoint.ZedListX.Add(Convert.ToDouble(zedGrpahNames[j].x));
-                                    zedGrpahNames[i].zedPoint.ZedListY.Add(value);
-
-                                    if (zedGrpahNames[j].isSingleWindowShowed)
-                                        coOb[i].CallEvent(zedGrpahNames[j].x, value);
-                                }
-                            }
-                        }
-                            #endregion
-
-                        else if (Convert.ToInt16(splitted_Message.ElementAt(1 + 4*k)) == 5) //大批量读取参数值(PID)
-                        {
-                            int type = Convert.ToInt16(splitted_Message.ElementAt(2 + 4*k));
-                            var valuePID = splitted_Message.ElementAt(3 + 4*k);
-
-                            var indexP = valuePID.IndexOf('P');
-                            var indexI = valuePID.IndexOf("I", StringComparison.Ordinal);
-                            var indexD = valuePID.IndexOf("D", StringComparison.Ordinal);
-
-                            if (indexP != -1 && indexI != -1 && indexD != -1)
-                            {
-                                var valueP =
-                                    (Convert.ToInt16(valuePID.Substring(indexP + 1, indexI - indexP - 1))/1000.0)
-                                        .ToString(CultureInfo.InvariantCulture);
-                                var valueI =
-                                    (Convert.ToInt16(valuePID.Substring(indexI + 1, indexD - indexI - 1))/1000.0)
-                                        .ToString(CultureInfo.InvariantCulture);
-                                var valueD =
-                                    (Convert.ToInt16(valuePID.Substring(indexD + 1))/1000.0).ToString(
-                                        CultureInfo.InvariantCulture);
-
-                                if (type == 1)
-                                {
-                                    textBox_Steer_P.Text = valueP;
-                                    textBox_Steer_I.Text = valueI;
-                                    textBox_Steer_D.Text = valueD;
-                                }
-                                else if (type == 2)
-                                {
-                                    textBox_Motor_P.Text = valueP;
-                                    textBox_Motor_I.Text = valueI;
-                                    textBox_Motor_D.Text = valueD;
-                                }
-                                else if (type == 3)
-                                {
-                                    textBox_Stand_P.Text = valueP;
-                                    textBox_Stand_I.Text = valueI;
-                                    textBox_Stand_D.Text = valueD;
-                                }
-                                else if (type == 4)
-                                {
-                                    textBox_Speed_P.Text = valueP;
-                                    textBox_Speed_I.Text = valueI;
-                                    textBox_Speed_D.Text = valueD;
-                                }
-                                else if (type == 5)
-                                {
-                                    textBox_Direction_P.Text = valueP;
-                                    textBox_Direction_I.Text = valueI;
-                                    textBox_Direction_D.Text = valueD;
-                                }
-                            }
-                        }
-                        else if (Convert.ToInt16(splitted_Message.ElementAt(1 + 4*k)) == 6) //大批量读取参数值(diy)
-                        {
-                            int child = Convert.ToInt16(splitted_Message.ElementAt(2 + 4*k));
-                            var valueDIY =
-                                (Convert.ToDouble(splitted_Message.ElementAt(3 + 4*k))/1000.0).ToString(
-                                    CultureInfo.InvariantCulture);
-
-                            //给相应控件赋值
-                            var total = Convert.ToInt32(textBox_DIY_Number.Text);
-
-                            if (child < total)
-                            {
-                                var checkboxSelect = new CheckBox();
-                                checkboxSelect =
-                                    (CheckBox)
-                                        panel_add_DIYControls.Controls.Find(
-                                            "checkBox_Def" + Convert.ToString(child),
-                                            true)[0];
-
-                                var txtBox = new TextBox[2]; //用控件数组来定义每一行的TextBox,总共3个TextBox
-                                txtBox[0] =
-                                    (TextBox)
-                                        panel_add_DIYControls.Controls.Find("txtName" + Convert.ToString(child),
-                                            true)[0
-                                            ];
-                                txtBox[1] =
-                                    (TextBox)
-                                        panel_add_DIYControls.Controls.Find("txtValue" + Convert.ToString(child),
-                                            true)[
-                                                0];
-
-                                if (checkboxSelect.Checked)
-                                {
-                                    txtBox[1].Text = valueDIY;
-                                }
-                            }
-                        }
-                        else if (Convert.ToInt16(splitted_Message.ElementAt(1 + 4*k)) == 7 || //PID返回的设置信息
-                                 Convert.ToInt16(splitted_Message.ElementAt(1 + 4*k)) == 8) //自定义参数返回的设置信息
-                        {
-                            //确保有收到ACK信号
-                            if (splitted_Message.ElementAt(3 + 4*k).Contains("ACK"))
-                            {
-                                if (_queueEchoControl.Count == 0) //队列中无元素
-                                {
-                                    //关闭进程
-                                    //queueEchoControl.Dequeue();
-                                    tmpSendHandle.Flag = 1;
-                                    timer_Send2GetEcho.Stop();
-                                }
-                                else
-                                {
-                                    tmpSendHandle.Flag = 1;
-                                }
-                                label28.Text = "OK!! + Remain:" + _queueEchoControl.Count;
-                                retryCount = 0;
-                            }
-                        }
-                        else if (Convert.ToInt16(splitted_Message.ElementAt(1 + 4*k)) == 9) //紧急停车标志位
-                        {
-                            //确保有收到ACK信号
-                            if (splitted_Message.ElementAt(3 + 4*k).Contains("ACK"))
-                            {
-                                if (_queueEchoControl.Count == 0) //队列中无元素
-                                {
-                                    //关闭进程
-                                    //queueEchoControl.Dequeue();
-                                    tmpSendHandle.Flag = 1;
-                                    timer_Send2GetEcho.Stop();
-                                }
-                                else
-                                {
-                                    tmpSendHandle.Flag = 1;
-                                }
-                                label28.Text = "OK! Stopped! " + _queueEchoControl.Count;
-                                retryCount = 0;
-                            }
-                        }
-
-                        if (Convert.ToInt16(splitted_Message.ElementAt(1 + 4*k)) == 5 || //PID返回的ECHO信息
-                            Convert.ToInt16(splitted_Message.ElementAt(1 + 4*k)) == 6) //自定义参数返回的ECHO信息
-                        {
-                            //if (splitted_Message.ElementAt(3 + 4 * k).Contains("ACK"))
-                            //{
-                            if (_queueEchoControl.Count == 0) //队列中无元素
-                            {
-                                //关闭进程
-                                //queueEchoControl.Dequeue();
-                                tmpSendHandle.Flag = 1;
-                                timer_Send2GetEcho.Stop();
-                            }
-                            else
-                            {
-                                tmpSendHandle.Flag = 1;
-                            }
-                            label28.Text = "OK!! + Remain:" + _queueEchoControl.Count;
-                            retryCount = 0;
-                            //}
-                        }
-                    }
+                    label28.Text = "OK!! + Remain:" + _queueEchoControl.Count;
+                    retryCount = 0;
+                    //}
                 }
             }
         }
@@ -1682,134 +1607,6 @@ namespace Freescale_debug
             }
        } 
         #endregion
-
-        #region 5. 摄像头参数
-
-        private void Camera_DrawActual(Bitmap bitmap, string cameraData)
-        {
-            var bitmapData =
-                bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height),
-                    ImageLockMode.ReadWrite, bitmap.PixelFormat);
-
-            var bytesPerPixel = Image.GetPixelFormatSize(bitmap.PixelFormat)/8;
-            var byteCount = bitmapData.Stride*bitmap.Height;
-            var pixels = new byte[byteCount];
-            var ptrFirstPixel = bitmapData.Scan0;
-            Marshal.Copy(ptrFirstPixel, pixels, 0, pixels.Length);
-            var heightInPixels = bitmapData.Height;
-            var widthInBytes = bitmapData.Width*bytesPerPixel;
-
-            for (var y = 0; y < heightInPixels; y++)
-            {
-                var currentLine = y*bitmapData.Stride;
-
-                for (var x = 0; x < widthInBytes; x = x + bytesPerPixel)
-                {
-                    int grey = Convert.ToInt16(cameraData.ElementAt(Convert.ToInt16(y + x/4)));
-
-                    // calculate new pixel value
-                    pixels[currentLine + x] = (byte) grey;
-                    pixels[currentLine + x + 1] = (byte) grey;
-                    pixels[currentLine + x + 2] = (byte) grey;
-                    pixels[currentLine + x + 3] = 255;
-                }
-            }
-            // copy modified bytes back
-            Marshal.Copy(pixels, 0, ptrFirstPixel, pixels.Length);
-            bitmap.UnlockBits(bitmapData);
-        }
-
-        #endregion
-
-        #region 6.CCD图像
-        private void CCD_DrawActual(Bitmap bitmap, List<int> recvBuff)
-        {
-            var bitmapData =
-                bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height),
-                    ImageLockMode.ReadWrite, bitmap.PixelFormat);
-
-            var bytesPerPixel = Image.GetPixelFormatSize(bitmap.PixelFormat)/8;
-            var byteCount = bitmapData.Stride*bitmap.Height;
-            var pixels = new byte[byteCount];
-            var ptrFirstPixel = bitmapData.Scan0;
-            Marshal.Copy(ptrFirstPixel, pixels, 0, pixels.Length);
-            var heightInPixels = bitmapData.Height;
-            var widthInBytes = bitmapData.Width*bytesPerPixel;
-
-            for (var y = 0; y < heightInPixels; y++)
-            {
-                var currentLine = y*bitmapData.Stride;
-
-                for (var x = 0; x < widthInBytes; x = x + bytesPerPixel)
-                {
-                    var grey = recvBuff.ElementAt(Convert.ToInt16(x/4));
-
-                    // calculate new pixel value
-                    pixels[currentLine + x] = (byte) grey;
-                    pixels[currentLine + x + 1] = (byte) grey;
-                    pixels[currentLine + x + 2] = (byte) grey;
-                    pixels[currentLine + x + 3] = 255;
-                }
-            }
-            // copy modified bytes back
-            Marshal.Copy(pixels, 0, ptrFirstPixel, pixels.Length);
-            bitmap.UnlockBits(bitmapData);
-        }
-
-        private void CCD_DrawPath(Bitmap bitmap, List<int> recBuff)
-        {
-            var bitmapData =
-                bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height),
-                    ImageLockMode.ReadWrite, bitmap.PixelFormat);
-
-            var bytesPerPixel = Image.GetPixelFormatSize(bitmap.PixelFormat)/8;
-            var byteCount = bitmapData.Stride*bitmap.Height;
-            var pixels = new byte[byteCount];
-            var ptrFirstPixel = bitmapData.Scan0;
-            Marshal.Copy(ptrFirstPixel, pixels, 0, pixels.Length);
-            var heightInPixels = bitmapData.Height;
-            var widthInBytes = bitmapData.Width*bytesPerPixel;
-
-            for (var y = 1; y < heightInPixels; y++)
-            {
-                var currentLine = y*bitmapData.Stride;
-                var formerLine = (y - 1)*bitmapData.Stride;
-
-                for (var x = 0; x < widthInBytes; x = x + bytesPerPixel)
-                {
-                    int oldBlue = pixels[currentLine + x];
-                    int oldGreen = pixels[currentLine + x + 1];
-                    int oldRed = pixels[currentLine + x + 2];
-
-                    pixels[formerLine + x] = (byte) oldBlue;
-                    pixels[formerLine + x + 1] = (byte) oldGreen;
-                    pixels[formerLine + x + 2] = (byte) oldRed;
-                    pixels[formerLine + x + 3] = 255;
-                }
-            }
-
-            for (var y = heightInPixels - 1; y < heightInPixels; y++)
-            {
-                var currentLine = y*bitmapData.Stride;
-
-                for (var x = 0; x < widthInBytes; x = x + bytesPerPixel)
-                {
-                    var leng = recBuff.Count;
-                    var grey = recBuff.ElementAt(Convert.ToInt16(x/4));
-
-                    // calculate new pixel value
-                    pixels[currentLine + x] = (byte) grey;
-                    pixels[currentLine + x + 1] = (byte) grey;
-                    pixels[currentLine + x + 2] = (byte) grey;
-                    pixels[currentLine + x + 3] = 255;
-                }
-            }
-            // copy modified bytes back
-            Marshal.Copy(pixels, 0, ptrFirstPixel, pixels.Length);
-            bitmap.UnlockBits(bitmapData);
-        }
-        #endregion
-
         #region 7.虚拟示波器
 
         private void InitzedGraph()
@@ -1947,7 +1744,11 @@ namespace Freescale_debug
                 txtBox.Enabled = true;
                 buttonNewForm.Enabled = true;
 
-                if (!mySerialPort.IsOpen)
+                if (mySerialPort.IsOpen)
+                {
+                    timer_fresh.Start();
+                }
+                else
                 {
                     for (var j = 0; j < zedGrpahNames[id].zedPoint.ZedListX.Count; j++)
                     {
@@ -1955,10 +1756,6 @@ namespace Freescale_debug
                         double y = zedGrpahNames[id].zedPoint.ZedListY.ElementAt(j);
                         zedGrpahNames[id].listZed.Add(x, y);
                     }
-                }
-                else
-                {
-                    timer_fresh.Start();
                 }
             }
             else
@@ -1986,22 +1783,25 @@ namespace Freescale_debug
             var btnClk = (Button) sender;
 
             var id = GetNumber(btnClk.Name) - 1;
-
             if (zedGrpahNames[id].isSingleWindowShowed == false)
             {
                 zedGrpahNames[id].isSingleWindowShowed = true;
 
-                var txtBox = (TextBox) panel_Scope.Controls.Find("txtName" + 
-                    Convert.ToString(id + 1), true)[0];
-
-                var singleWindow = new ZedGraphSingleWindow(id, coOb[id], txtBox.Text);
-                singleWindow.SingnleClosedEvent += SingleWindowClosed_RecvInfo;
-                singleWindow.Show();
+                FindTextboxAndShowWindow(id);
             }
             else
             {
                 MessageBox.Show(@"不能重复创建！已经有了一个窗口！");
             }
+        }
+        private void FindTextboxAndShowWindow(int id)
+        {
+            var txtBox = (TextBox)panel_Scope.Controls.Find("txtName" +
+                    Convert.ToString(id + 1), true)[0];
+
+            var singleWindow = new ZedGraphSingleWindow(id, coOb[id], txtBox.Text);
+            singleWindow.SingnleClosedEvent += SingleWindowClosed_RecvInfo;
+            singleWindow.Show();
         }
 
         private static int GetNumber(string str)
@@ -2110,6 +1910,42 @@ namespace Freescale_debug
             }
         }
 
+        private void button_loadHistory_Click(object sender, EventArgs e)
+        {
+            openFileDialog_History.Title = "导入配置文件";
+            openFileDialog_History.Filter = "配置文件(*.ini)|*.ini|所有类型(*.*)|(*.*)";
+            openFileDialog_History.RestoreDirectory = true;
+            openFileDialog_History.FileName = "";
+            if (openFileDialog_History.ShowDialog() == DialogResult.OK)
+            {
+                var fileName = openFileDialog_History.FileName;
+                openFileDialog_History.FileName = fileName.Substring(fileName.LastIndexOf("\\") + 1);
+                //MessageBox.Show(fileName + filter);
+                var fs = new FileStream(fileName, FileMode.Open, FileAccess.Read);
+                var sr = new StreamReader(fs, Encoding.Default);
+
+                var lines = new List<string>();
+
+                while (sr.Peek() > -1)
+                {
+                    lines.Add(sr.ReadLine());
+                }
+
+                if (lines.ElementAt(0).Contains("CarType"))
+                {
+                    var countLine = 0;
+
+                    ReadPIDFromText(lines, countLine);
+                    ReadDIYFromText(lines, countLine);
+                    ReadScopeFromText(lines, countLine);
+                }
+                _isLoadHistory = true;
+
+                sr.Close();
+                fs.Close();
+            }
+        }
+
         private void WritePIDValueToText(StreamWriter sw, string filename)
         {
             //小车参数
@@ -2211,42 +2047,6 @@ namespace Freescale_debug
                     }
                     sw.WriteLine("");
                 }
-            }
-        }
-
-        private void button_loadHistory_Click(object sender, EventArgs e)
-        {
-            openFileDialog_History.Title = "导入配置文件";
-            openFileDialog_History.Filter = "配置文件(*.ini)|*.ini|所有类型(*.*)|(*.*)";
-            openFileDialog_History.RestoreDirectory = true;
-            openFileDialog_History.FileName = "";
-            if (openFileDialog_History.ShowDialog() == DialogResult.OK)
-            {
-                var fileName = openFileDialog_History.FileName;
-                openFileDialog_History.FileName = fileName.Substring(fileName.LastIndexOf("\\") + 1);
-                //MessageBox.Show(fileName + filter);
-                var fs = new FileStream(fileName, FileMode.Open, FileAccess.Read);
-                var sr = new StreamReader(fs, Encoding.Default);
-
-                var lines = new List<string>();
-
-                while (sr.Peek() > -1)
-                {
-                    lines.Add(sr.ReadLine());
-                }
-
-                if (lines.ElementAt(0).Contains("CarType"))
-                {
-                    var countLine = 0;
-
-                    ReadPIDFromText(lines, countLine);
-                    ReadPIDFromText(lines, countLine);
-                    ReadScopeFromText(lines, countLine);
-                }
-                _isLoadHistory = true;
-
-                sr.Close();
-                fs.Close();
             }
         }
 
@@ -2465,7 +2265,6 @@ namespace Freescale_debug
                 refleshZedPane(zedGraph_local);
             } //Scope End
         }
-
         #endregion
     }
 }
