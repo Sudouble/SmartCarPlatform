@@ -104,7 +104,7 @@ namespace Freescale_debug
             Init_pane_Scope();
             InitzedGraph();
 
-            Init_DIY_DynamicControls();
+            Init_CustomPara_DynamicControls();
             InitElectricity();
 
             //LoadHistory();
@@ -415,18 +415,18 @@ namespace Freescale_debug
 
             for (var k = 0; k < countLength; k++)
             {
-                if (Convert.ToInt16(splittedMessage.ElementAt(1 + EACH_MESSAGE_NUMBER * k)) == 1 &&
-                    checkBox_Camera_ONOFF.Checked)
+                int father = Convert.ToInt16(splittedMessage.ElementAt(1 + EACH_MESSAGE_NUMBER*k));
+
+                if (father == 1 && checkBox_Camera_ONOFF.Checked)
                 //摄像头数据
                 {
                     CameraAlgorithm cameraAlgorithm = new CameraAlgorithm(neededStr);
 
                     cameraAlgorithm.ApartMessage();
 
-                    cameraAlgorithm.Camera_DrawActual(pictureBox_CameraActual);
+                    cameraAlgorithm.DrawCameraPicture(pictureBox_CameraActual);
                 }
-                else if (Convert.ToInt16(splittedMessage.ElementAt(1 + 4 * k)) == 2 &&
-                    checkBox_CCD_ONOFF.Checked)
+                else if (father == 2 && checkBox_CCD_ONOFF.Checked)
                 //CCD数据
                 {
                     CCDAlgorithm ccdAlgorithm = new CCDAlgorithm(neededStr, recBuff);
@@ -438,273 +438,242 @@ namespace Freescale_debug
 
                     if (Convert.ToInt16(splittedMessage.ElementAt(2 + 4 * k)) == 1) //CCD1
                     {
-                        ccdAlgorithm.CCD_DrawActual(pictureBox_CCD1);
+                        ccdAlgorithm.DrawCCDPicture(pictureBox_CCD1);
 
                         //绘制路径曲线
-                        ccdAlgorithm.CCD_DrawPath(_bitmapOld, pictureBox_CCD_Path);
+                        ccdAlgorithm.DrawCCDPath(_bitmapOld, pictureBox_CCD_Path);
                     }
                     else if (Convert.ToInt16(splittedMessage.ElementAt(2 + 4 * k)) == 2) //CCD2
                     {
-                        ccdAlgorithm.CCD_DrawActual(pictureBox_CCD2);
+                        ccdAlgorithm.DrawCCDPicture(pictureBox_CCD2);
                     }
                     else if (Convert.ToInt16(splittedMessage.ElementAt(2 + 4 * k)) == 3) //CCD3
                     {
-                        ccdAlgorithm.CCD_DrawActual(pictureBox_CCD3);
+                        ccdAlgorithm.DrawCCDPicture(pictureBox_CCD3);
                     }
                 }
-                else if (Convert.ToInt16(splittedMessage.ElementAt(1 + 4 * k)) == 3) //实时参数
+                else if (father == 3) //实时参数
                 {
                     int Elect_num = Convert.ToInt16(splittedMessage.ElementAt(2 + 4 * k));
-                    if (Elect_num <= Convert.ToInt16(textBox_Electricity_Number.Text)) //发送的传感器数据比现有的小
-                    {
-                        var txtBox = new TextBox();
-                        txtBox =
-                            (TextBox)
-                                panel_Electricity.Controls.Find(
-                                    "txtElectValue" + Convert.ToString(Elect_num), true)[0];
+                    string realTimeValue = splittedMessage.ElementAt(3 + 4*k);
 
-                        //将参数赋值到相应的版块
-                        var value = Convert.ToDouble(splittedMessage.ElementAt(3 + 4 * k)) / 1000;
-                        txtBox.Text = value.ToString();
-                    }
+                    ReadRealtimeFromChip(Elect_num, realTimeValue);
                 }
-                #region 示波器显示部分
-
-                else if (Convert.ToInt16(splittedMessage.ElementAt(1 + 4 * k)) == 4) //传送到示波器的数据
+                else if (father == 4) //传送到示波器的数据
                 {
-                    var hasChecked_Item = false;
+                    int id = Convert.ToInt16(splittedMessage.ElementAt(2 + 4 * k));
+                    var value = Convert.ToDouble(splittedMessage.ElementAt(3 + 4 * k)) / 1000;
 
-                    var total = ScopeNumber;
-                    var checkDrawing = new CheckBox[ScopeNumber];
-                    var txtBox = new TextBox[ScopeNumber]; //用控件数组来定义每一行的TextBox,总共3个TextBox
-                    var buttonNewForm = new Button[ScopeNumber];
-
-                    if (_isLoadHistory)
-                    {
-                        _isLoadHistory = false;
-                        for (var i = 0; i < ScopeNumber; i++) //首先清除所有的曲线数据
-                        {
-                            zedGrpahNames[i].listZed.RemoveRange(0, zedGrpahNames[i].listZed.Count);
-                            zedGrpahNames[i].x = -1;
-                        }
-                    }
-
-                    for (var i = 0; i < total; i++)
-                    {
-                        checkDrawing[i] =
-                            (CheckBox)
-                                panel_Scope.Controls.Find("checkBox_Def" + Convert.ToString(i + 1), true)[0];
-
-                        txtBox[i] =
-                            (TextBox)
-                                panel_Scope.Controls.Find("txtName" + Convert.ToString(i + 1), true)[0];
-
-                        buttonNewForm[i] =
-                            (Button)
-                                panel_Scope.Controls.Find("buttonDraw" + Convert.ToString(i + 1), true)[0];
-
-                        if (checkDrawing[i].Checked && hasChecked_Item == false)
-                        {
-                            //如果有被选择的话，刷新绘图窗口
-                            hasChecked_Item = true;
-                            timer_fresh.Start();
-                        }
-                    }
-
-                    for (var i = 0; i < total; i++)
-                    {
-                        if (checkDrawing[i].Checked &&
-                            Convert.ToInt16(splittedMessage.ElementAt(2 + 4 * k)) == i + 1)
-                        {
-                            hasChecked_Item = true;
-                            //ZedGraph绘图
-                            var j = Convert.ToInt16(splittedMessage.ElementAt(2 + 4 * k)) - 1;
-                            var value = Convert.ToDouble(splittedMessage.ElementAt(3 + 4 * k)) / 1000;
-                            zedGrpahNames[i].ValueZed = value;
-
-                            if ((_xmaxScale - zedGrpahNames[j].x) < (_xmaxScale / 5)) //自动改变坐标轴范围
-                            {
-                                _xmaxScale += _xmaxScale / 5;
-                                zedGraph_local.GraphPane.XAxis.Scale.Max = _xmaxScale;
-                            }
-                            if (_ymaxScale - zedGrpahNames[i].ValueZed < _ymaxScale / 5) //自动改变坐标轴范围
-                            {
-                                //YmaxScale += YmaxScale/5;
-                                _ymaxScale += -_ymaxScale + 1.3 * zedGrpahNames[i].ValueZed;
-                                zedGraph_local.GraphPane.YAxis.Scale.Max = _ymaxScale;
-                            }
-                            if (_yminScale - zedGrpahNames[i].ValueZed > _yminScale / 5) //自动改变坐标轴范围
-                            {
-                                _yminScale += _yminScale / 5;
-                                zedGraph_local.GraphPane.YAxis.Scale.Min = _yminScale;
-                            }
-
-                            zedGrpahNames[j].x += 1;
-
-                            zedGrpahNames[j].listZed.Add(Convert.ToDouble(zedGrpahNames[j].x), value);
-                            zedGrpahNames[i].zedPoint.ZedListX.Add(Convert.ToDouble(zedGrpahNames[j].x));
-                            zedGrpahNames[i].zedPoint.ZedListY.Add(value);
-
-                            if (zedGrpahNames[j].isSingleWindowShowed)
-                                coOb[i].CallEvent(zedGrpahNames[j].x, value);
-                        }
-                    }
+                    ReadFromChipAndDrawToScop(id, value);
                 }
-                #endregion
-
-                else if (Convert.ToInt16(splittedMessage.ElementAt(1 + 4 * k)) == 5) //大批量读取参数值(PID)
+                else if (father == 5) //读取参数值(PID)
                 {
                     int type = Convert.ToInt16(splittedMessage.ElementAt(2 + 4 * k));
                     var valuePID = splittedMessage.ElementAt(3 + 4 * k);
 
-                    var indexP = valuePID.IndexOf('P');
-                    var indexI = valuePID.IndexOf("I", StringComparison.Ordinal);
-                    var indexD = valuePID.IndexOf("D", StringComparison.Ordinal);
-
-                    if (indexP != -1 && indexI != -1 && indexD != -1)
-                    {
-                        var valueP =
-                            (Convert.ToInt16(valuePID.Substring(indexP + 1, indexI - indexP - 1)) / 1000.0)
-                                .ToString(CultureInfo.InvariantCulture);
-                        var valueI =
-                            (Convert.ToInt16(valuePID.Substring(indexI + 1, indexD - indexI - 1)) / 1000.0)
-                                .ToString(CultureInfo.InvariantCulture);
-                        var valueD =
-                            (Convert.ToInt16(valuePID.Substring(indexD + 1)) / 1000.0).ToString(
-                                CultureInfo.InvariantCulture);
-
-                        if (type == 1)
-                        {
-                            textBox_Steer_P.Text = valueP;
-                            textBox_Steer_I.Text = valueI;
-                            textBox_Steer_D.Text = valueD;
-                        }
-                        else if (type == 2)
-                        {
-                            textBox_Motor_P.Text = valueP;
-                            textBox_Motor_I.Text = valueI;
-                            textBox_Motor_D.Text = valueD;
-                        }
-                        else if (type == 3)
-                        {
-                            textBox_Stand_P.Text = valueP;
-                            textBox_Stand_I.Text = valueI;
-                            textBox_Stand_D.Text = valueD;
-                        }
-                        else if (type == 4)
-                        {
-                            textBox_Speed_P.Text = valueP;
-                            textBox_Speed_I.Text = valueI;
-                            textBox_Speed_D.Text = valueD;
-                        }
-                        else if (type == 5)
-                        {
-                            textBox_Direction_P.Text = valueP;
-                            textBox_Direction_I.Text = valueI;
-                            textBox_Direction_D.Text = valueD;
-                        }
-                    }
+                    ReadPIDFromChip(type, valuePID);
                 }
-                else if (Convert.ToInt16(splittedMessage.ElementAt(1 + 4 * k)) == 6) //大批量读取参数值(diy)
+                else if (father == 6) //读取参数值(CustomPara)
                 {
                     int child = Convert.ToInt16(splittedMessage.ElementAt(2 + 4 * k));
-                    var valueDIY =
-                        (Convert.ToDouble(splittedMessage.ElementAt(3 + 4 * k)) / 1000.0).ToString(
-                            CultureInfo.InvariantCulture);
+                    var valueCustomPara =
+                        (Convert.ToDouble(splittedMessage.ElementAt(3 + 4 * k)) / 1000.0).ToString();
 
-                    //给相应控件赋值
-                    var total = Convert.ToInt32(textBox_DIY_Number.Text);
-
-                    if (child < total)
-                    {
-                        var checkboxSelect = new CheckBox();
-                        checkboxSelect =
-                            (CheckBox)
-                                panel_add_DIYControls.Controls.Find(
-                                    "checkBox_Def" + Convert.ToString(child),
-                                    true)[0];
-
-                        var txtBox = new TextBox[2]; //用控件数组来定义每一行的TextBox,总共3个TextBox
-                        txtBox[0] =
-                            (TextBox)
-                                panel_add_DIYControls.Controls.Find("txtName" + Convert.ToString(child),
-                                    true)[0
-                                    ];
-                        txtBox[1] =
-                            (TextBox)
-                                panel_add_DIYControls.Controls.Find("txtValue" + Convert.ToString(child),
-                                    true)[
-                                        0];
-
-                        if (checkboxSelect.Checked)
-                        {
-                            txtBox[1].Text = valueDIY;
-                        }
-                    }
+                    ReadCustomParaFromChip(child, valueCustomPara);
                 }
-                else if (Convert.ToInt16(splittedMessage.ElementAt(1 + 4 * k)) == 7 || //PID返回的设置信息
-                         Convert.ToInt16(splittedMessage.ElementAt(1 + 4 * k)) == 8) //自定义参数返回的设置信息
+                else if (father == 7 || //PID返回的设置信息
+                         father == 8 || //自定义参数返回的设置信息
+                         father == 9)   //紧急停车
                 {
-                    //确保有收到ACK信号
-                    if (splittedMessage.ElementAt(3 + 4 * k).Contains("ACK"))
+                    Boolean isContainsACK = splittedMessage.ElementAt(3 + 4*k).Contains("ACK");
+
+                    if (isContainsACK)
                     {
-                        if (_queueEchoControl.Count == 0) //队列中无元素
-                        {
-                            //关闭进程
-                            //queueEchoControl.Dequeue();
-                            tmpSendHandle.Flag = 1;
-                            timer_Send2GetEcho.Stop();
-                        }
-                        else
-                        {
-                            tmpSendHandle.Flag = 1;
-                        }
-                        label28.Text = "OK!! + Remain:" + _queueEchoControl.Count;
-                        retryCount = 0;
-                    }
-                }
-                else if (Convert.ToInt16(splittedMessage.ElementAt(1 + 4 * k)) == 9) //紧急停车标志位
-                {
-                    //确保有收到ACK信号
-                    if (splittedMessage.ElementAt(3 + 4 * k).Contains("ACK"))
-                    {
-                        if (_queueEchoControl.Count == 0) //队列中无元素
-                        {
-                            //关闭进程
-                            //queueEchoControl.Dequeue();
-                            tmpSendHandle.Flag = 1;
-                            timer_Send2GetEcho.Stop();
-                        }
-                        else
-                        {
-                            tmpSendHandle.Flag = 1;
-                        }
-                        label28.Text = "OK! Stopped! " + _queueEchoControl.Count;
-                        retryCount = 0;
+                        StopSendCurrentQueueAndUpdateState();
                     }
                 }
 
-                if (Convert.ToInt16(splittedMessage.ElementAt(1 + 4 * k)) == 5 || //PID返回的ECHO信息
-                    Convert.ToInt16(splittedMessage.ElementAt(1 + 4 * k)) == 6) //自定义参数返回的ECHO信息
+                if (father == 5 || //PID返回的ECHO信息
+                    father == 6) //自定义参数返回的ECHO信息
                 {
-                    //if (splitted_Message.ElementAt(3 + 4 * k).Contains("ACK"))
-                    //{
-                    if (_queueEchoControl.Count == 0) //队列中无元素
-                    {
-                        //关闭进程
-                        //queueEchoControl.Dequeue();
-                        tmpSendHandle.Flag = 1;
-                        timer_Send2GetEcho.Stop();
-                    }
-                    else
-                    {
-                        tmpSendHandle.Flag = 1;
-                    }
-                    label28.Text = "OK!! + Remain:" + _queueEchoControl.Count;
-                    retryCount = 0;
-                    //}
+                    StopSendCurrentQueueAndUpdateState();
                 }
             }
+        }
+
+        private void ReadRealtimeFromChip(int electNum, string realTimeStr)
+        {
+            int totalContolsNum = Convert.ToInt16(textBox_Electricity_Number.Text);
+            if (electNum <= totalContolsNum) //发送的传感器数据比现有的小
+            {
+                var txtBox = (TextBox)
+                    panel_Electricity.Controls.Find(
+                        "txtElectValue" + Convert.ToString(electNum), true)[0];
+
+                //将参数赋值到相应的版块
+                var value = Convert.ToDouble(realTimeStr) / 1000;
+                txtBox.Text = value.ToString();
+            }
+        }
+
+        private void ReadFromChipAndDrawToScop(int id, double value)
+        {
+            var hasCheckedItem = false;
+
+            var total = ScopeNumber;
+            var checkDrawing = new CheckBox[ScopeNumber];
+
+            if (_isLoadHistory)
+            {
+                ClearCurves();
+            }
+
+            for (var i = 0; i < total; i++)
+            {
+                checkDrawing[i] =
+                    (CheckBox)
+                        panel_Scope.Controls.Find("checkBox_Def" + Convert.ToString(i + 1), true)[0];
+
+                if (checkDrawing[i].Checked)
+                {
+                    //如果有被选择的话，刷新绘图窗口
+                    hasCheckedItem = true;
+                    timer_fresh.Start();
+                    break;
+                }
+            }
+
+            for (var i = 0; i < total; i++)
+            {
+                if (checkDrawing[i].Checked &&
+                    id == i + 1)
+                {
+                    hasCheckedItem = true;
+
+                    zedGrpahNames[i].ValueZed = value;
+
+                    if ((_xmaxScale - zedGrpahNames[i].x) < (_xmaxScale / 5)) //自动改变坐标轴范围
+                    {
+                        _xmaxScale += _xmaxScale / 5;
+                        zedGraph_local.GraphPane.XAxis.Scale.Max = _xmaxScale;
+                    }
+                    if (_ymaxScale - zedGrpahNames[i].ValueZed < _ymaxScale / 5) //自动改变坐标轴范围
+                    {
+                        //YmaxScale += YmaxScale/5;
+                        _ymaxScale += -_ymaxScale + 1.3 * zedGrpahNames[i].ValueZed;
+                        zedGraph_local.GraphPane.YAxis.Scale.Max = _ymaxScale;
+                    }
+                    if (_yminScale - zedGrpahNames[i].ValueZed > _yminScale / 5) //自动改变坐标轴范围
+                    {
+                        _yminScale += _yminScale / 5;
+                        zedGraph_local.GraphPane.YAxis.Scale.Min = _yminScale;
+                    }
+
+                    zedGrpahNames[i].x += 1;
+
+                    zedGrpahNames[i].listZed.Add(Convert.ToDouble(zedGrpahNames[i].x), value);
+                    zedGrpahNames[i].zedPoint.ZedListX.Add(Convert.ToDouble(zedGrpahNames[i].x));
+                    zedGrpahNames[i].zedPoint.ZedListY.Add(value);
+
+                    if (zedGrpahNames[i].isSingleWindowShowed)
+                        coOb[i].CallEvent(zedGrpahNames[i].x, value);
+                }
+            }
+        }
+
+        private void ClearCurves()
+        {
+            _isLoadHistory = false;
+            for (var i = 0; i < ScopeNumber; i++) //首先清除所有的曲线数据
+            {
+                zedGrpahNames[i].listZed.RemoveRange(0, zedGrpahNames[i].listZed.Count);
+                zedGrpahNames[i].x = -1;
+            }
+        }
+
+        private void ReadPIDFromChip(int type, string PIDStrings)
+        {
+            var indexP = PIDStrings.IndexOf('P');
+            var indexI = PIDStrings.IndexOf("I", StringComparison.Ordinal);
+            var indexD = PIDStrings.IndexOf("D", StringComparison.Ordinal);
+
+            if (indexP != -1 && indexI != -1 && indexD != -1)
+            {
+                var valueP =
+                    (Convert.ToInt16(PIDStrings.Substring(indexP + 1, indexI - indexP - 1)) / 1000.0)
+                        .ToString(CultureInfo.InvariantCulture);
+                var valueI =
+                    (Convert.ToInt16(PIDStrings.Substring(indexI + 1, indexD - indexI - 1)) / 1000.0)
+                        .ToString(CultureInfo.InvariantCulture);
+                var valueD =
+                    (Convert.ToInt16(PIDStrings.Substring(indexD + 1)) / 1000.0).ToString(
+                        CultureInfo.InvariantCulture);
+
+                if (type == 1)
+                {
+                    textBox_Steer_P.Text = valueP;
+                    textBox_Steer_I.Text = valueI;
+                    textBox_Steer_D.Text = valueD;
+                }
+                else if (type == 2)
+                {
+                    textBox_Motor_P.Text = valueP;
+                    textBox_Motor_I.Text = valueI;
+                    textBox_Motor_D.Text = valueD;
+                }
+                else if (type == 3)
+                {
+                    textBox_Stand_P.Text = valueP;
+                    textBox_Stand_I.Text = valueI;
+                    textBox_Stand_D.Text = valueD;
+                }
+                else if (type == 4)
+                {
+                    textBox_Speed_P.Text = valueP;
+                    textBox_Speed_I.Text = valueI;
+                    textBox_Speed_D.Text = valueD;
+                }
+                else if (type == 5)
+                {
+                    textBox_Direction_P.Text = valueP;
+                    textBox_Direction_I.Text = valueI;
+                    textBox_Direction_D.Text = valueD;
+                }
+            }
+        }
+
+        private void ReadCustomParaFromChip(int child, string CustomParaStrings)
+        {
+            var total = Convert.ToInt32(textBox_DIY_Number.Text);
+
+            if (child < total)
+            {
+                var checkboxSelect = (CheckBox)panel_add_DIYControls.Controls.Find("checkBox_Def" +
+                    Convert.ToString(child),true)[0];
+                var txtBox = (TextBox)panel_add_DIYControls.Controls.Find("txtValue" + 
+                    Convert.ToString(child),true)[0];
+
+                if (checkboxSelect.Checked)
+                {
+                    txtBox.Text = CustomParaStrings;
+                }
+            }
+        }
+
+        private void StopSendCurrentQueueAndUpdateState()
+        {
+            if (_queueEchoControl.Count == 0) //队列中无元素
+            {
+                tmpSendHandle.Flag = 1;
+                timer_Send2GetEcho.Stop();
+            }
+            else
+            {
+                tmpSendHandle.Flag = 1;
+            }
+
+            label28.Text = "OK!! + Remain:" + _queueEchoControl.Count;
+            retryCount = 0;
         }
 
         #endregion
@@ -1309,25 +1278,25 @@ namespace Freescale_debug
 
         private void button_DIY_NumConfirm_Click(object sender, EventArgs e)
         {
-            DIYValidationCheck();
+            CustomParaValidationCheck();
             var result = MessageBox.Show(@"确认更改数量？", @"修改", MessageBoxButtons.OKCancel);
             if (result == DialogResult.OK)
             {
-                DrawDIYPannel(false);
+                DrawCustomParaPannel(false);
             }
             SaveConfig(SavefileName);
         }
-        private void Init_DIY_DynamicControls()
+        private void Init_CustomPara_DynamicControls()
         {
             var sp = new SharedPreferences(SavefileName);
             if (sp.ConfigFileExists)
             {
-                DIYValidationCheck();
-                DrawDIYPannel(true);
+                CustomParaValidationCheck();
+                DrawCustomParaPannel(true);
             }
         }
 
-        private void DrawDIYPannel(Boolean byInit)
+        private void DrawCustomParaPannel(Boolean byInit)
         {
             panel_add_DIYControls.AutoScroll = true;
             panel_add_DIYControls.Controls.Clear();
@@ -1340,7 +1309,7 @@ namespace Freescale_debug
             }
         }
 
-        private void DIYValidationCheck()
+        private void CustomParaValidationCheck()
         {
             var total = int.Parse(textBox_DIY_Number.Text);
             if (total < 1)
@@ -1374,8 +1343,8 @@ namespace Freescale_debug
                 txtBoxName.TextAlign = HorizontalAlignment.Center;
                 if (byInit)
                 {
-                    var txtName_DIY = string.Format("DIY_TextName{0}", i + 1);
-                    txtBoxName.Text = sp.GetString(txtName_DIY, "数据");
+                    var txtName_CustomPara = string.Format("DIY_TextName{0}", i + 1);
+                    txtBoxName.Text = sp.GetString(txtName_CustomPara, "数据");
                 }
                 else
                 {
@@ -1390,8 +1359,8 @@ namespace Freescale_debug
                 txtBoxValue.TextAlign = HorizontalAlignment.Center;
                 if (byInit)
                 {
-                    var txtValue_DIY = string.Format("DIY_TextValue{0}", i + 1);
-                    txtBoxValue.Text = sp.GetString(txtValue_DIY, "1.0");
+                    var txtValue_CustomPara = string.Format("DIY_TextValue{0}", i + 1);
+                    txtBoxValue.Text = sp.GetString(txtValue_CustomPara, "1.0");
                 }
                 else
                 {
@@ -1459,7 +1428,7 @@ namespace Freescale_debug
 
         private void CheckboxSelectOnCheckedChanged(object sender, EventArgs eventArgs)
         {
-            DIYValidationCheck();
+            CustomParaValidationCheck();
             var total = Convert.ToInt32(textBox_DIY_Number.Text);
             for (var i = 0; i < total; i++)
             {
@@ -1497,7 +1466,7 @@ namespace Freescale_debug
             //=====================================
             try
             {
-                string combinedString = SendDIYParaAll();
+                string combinedString = SendCustomParaAll();
                 NeedSend = head + combinedString + end;
 
                 mySerialPort.Write(NeedSend);
@@ -1512,7 +1481,7 @@ namespace Freescale_debug
             }
         }
 
-        private string SendDIYParaAll()
+        private string SendCustomParaAll()
         {
             string NeedSend = "";
             var total = Convert.ToInt32(textBox_DIY_Number.Text);
@@ -1542,24 +1511,22 @@ namespace Freescale_debug
         private void InitElectricity()
         {
             var sp = new SharedPreferences(SavefileName);
-            if (sp.ConfigFileExists)
+            if (sp.ConfigFileExists && isRealTimeValide())
             {
-                RealTimeValidationCheck();
-
                 DrawRealTimePannel(sp, true);
             }
         }
         private void button_electricity_NumConfirm_Click(object sender, EventArgs e)
         {
-            RealTimeValidationCheck();
-
-            var sp = new SharedPreferences(SavefileName);
-            if (sp.ConfigFileExists)
+            if (isRealTimeValide())
             {
-                DrawRealTimePannel(sp, false);
+                var sp = new SharedPreferences(SavefileName);
+                if (sp.ConfigFileExists)
+                {
+                    DrawRealTimePannel(sp, false);
+                }
+                SaveConfig(SavefileName);
             }
-
-            SaveConfig(SavefileName);
         }
 
         private void DrawRealTimePannel(SharedPreferences sp, Boolean byInit)
@@ -1589,23 +1556,24 @@ namespace Freescale_debug
                 txtBoxValue.TextAlign = HorizontalAlignment.Center;
                 if (byInit)
                 {
-                    var elec_Value = string.Format("txtElectValue{0}", i + 1);
-                    txtBoxValue.Text = sp.GetString(elec_Value, "1.0");
+                    var elecValue = string.Format("txtElectValue{0}", i + 1);
+                    txtBoxValue.Text = sp.GetString(elecValue, "1.0");
                 }
 
                 panel_Electricity.Controls.Add(labelElect);
                 panel_Electricity.Controls.Add(txtBoxValue);
             }
         }
-        private void RealTimeValidationCheck()
+        private Boolean isRealTimeValide()
         {
             int number = Convert.ToInt16(textBox_Electricity_Number.Text);
             if (number < 1)
             {
                 MessageBox.Show(@"请输入需要的参数数量！", @"错误");
-                return;
+                return false;
             }
-       } 
+            return true;
+        } 
         #endregion
         #region 7.虚拟示波器
 
@@ -1649,8 +1617,8 @@ namespace Freescale_debug
                 var curve = string.Format("波形{0}", i + 1);
 
                 //自己定义的变量名称
-                var txtName_DIY = string.Format("SCOPE_TextName{0}", i + 1);
-                var getName = sp.GetString(txtName_DIY, @"波形" + Convert.ToString(i + 1));
+                var txtName_CustomPara = string.Format("SCOPE_TextName{0}", i + 1);
+                var getName = sp.GetString(txtName_CustomPara, @"波形" + Convert.ToString(i + 1));
                 zedGraph_local.GraphPane.AddCurve(getName.Trim() != "" ? getName : curve, zedGrpahNames[i].listZed, _colorLine[i%8],
                     SymbolType.None);
             }
@@ -1681,8 +1649,8 @@ namespace Freescale_debug
                 txtBoxName.Location = new Point(41 + i%8*77, 7 + i/8*60);
                 txtBoxName.Name = "txtName" + Convert.ToString(i + 1);
                 txtBoxName.TextAlign = HorizontalAlignment.Center;
-                var txtName_DIY = string.Format("SCOPE_TextName{0}", i + 1);
-                var getName = sp.GetString(txtName_DIY, @"波形" + Convert.ToString(i + 1));
+                var txtName_CustomPara = string.Format("SCOPE_TextName{0}", i + 1);
+                var getName = sp.GetString(txtName_CustomPara, @"波形" + Convert.ToString(i + 1));
                 txtBoxName.Text = getName.Trim() != "" ? getName : string.Format("波形{0}", i + 1);
                 txtBoxName.BackColor = _colorLine[i%8];
                 txtBoxName.TextChanged += ScopeTextNameChanged;
@@ -1901,7 +1869,7 @@ namespace Freescale_debug
                 var sw = new StreamWriter(fs, Encoding.Default);
 
                 WritePIDValueToText(sw, fileName);
-                WriteDIYSetupToText(sw, fileName);
+                WriteCustomParaSetupToText(sw, fileName);
                 WriteScopeSetupToText(sw, fileName);
 
                 //...
@@ -1936,7 +1904,7 @@ namespace Freescale_debug
                     var countLine = 0;
 
                     ReadPIDFromText(lines, countLine);
-                    ReadDIYFromText(lines, countLine);
+                    ReadCustomParaFromText(lines, countLine);
                     ReadScopeFromText(lines, countLine);
                 }
                 _isLoadHistory = true;
@@ -1981,20 +1949,20 @@ namespace Freescale_debug
             }
         }
 
-        private void WriteDIYSetupToText(StreamWriter sw, string fileName)
+        private void WriteCustomParaSetupToText(StreamWriter sw, string fileName)
         {
             //自定义参数
-            var totalDIY = 0;
+            var totalCustomPara = 0;
             if (textBox_DIY_Number.Text == "")
             {
                 //essageBox.Show(@"请重新输入需要的参数数量！", @"错误");
-                totalDIY = 0;
+                totalCustomPara = 0;
             }
-            totalDIY = Convert.ToInt32(textBox_DIY_Number.Text);
+            totalCustomPara = Convert.ToInt32(textBox_DIY_Number.Text);
 
-            sw.WriteLine("DIY_Num:{0}", totalDIY);
+            sw.WriteLine("DIY_Num:{0}", totalCustomPara);
 
-            for (var i = 0; i < totalDIY; i++)
+            for (var i = 0; i < totalCustomPara; i++)
             {
                 var txtBox = new TextBox[2]; //用控件数组来定义每一行的TextBox,总共3个TextBox
                 txtBox[0] =
@@ -2132,17 +2100,17 @@ namespace Freescale_debug
             ++countLine;
         }
 
-        private void ReadDIYFromText(List<string> lines, int countLine)
+        private void ReadCustomParaFromText(List<string> lines, int countLine)
         {
             //自定义参数
             if (lines.ElementAt(countLine).Contains("DIY_Num"))
             {
-                int diyNum = Convert.ToInt16(lines.ElementAt(countLine).Split(':').ElementAt(1));
+                int CustomParaNum = Convert.ToInt16(lines.ElementAt(countLine).Split(':').ElementAt(1));
                 ++countLine;
 
-                if (diyNum == Convert.ToInt16(textBox_DIY_Number.Text))
+                if (CustomParaNum == Convert.ToInt16(textBox_DIY_Number.Text))
                 {
-                    for (var i = 0; i < diyNum; i++)
+                    for (var i = 0; i < CustomParaNum; i++)
                     {
                         var checkboxSelect = new CheckBox();
                         checkboxSelect =
@@ -2175,7 +2143,7 @@ namespace Freescale_debug
                     var txtBoxValue = new TextBox();
                     var checkboxSelect = new CheckBox();
 
-                    for (var i = 0; i < diyNum; i++)
+                    for (var i = 0; i < CustomParaNum; i++)
                     {
                         //是否启用的选项
                         checkboxSelect = new CheckBox();

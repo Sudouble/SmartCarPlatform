@@ -42,9 +42,7 @@ namespace Freescale_debug
             cameraStr = cameraData;
         }
 
-        #region 5. 摄像头参数
-
-        public void Camera_DrawActual(PictureBox pictureBoxCamera)
+        public void DrawCameraPicture(PictureBox pictureBoxCamera)
         {
             if (isValidData())
             {
@@ -91,7 +89,7 @@ namespace Freescale_debug
                 return true;
             return false;
         }
-        #endregion
+
         public int GetHeight()
         {
             return height;

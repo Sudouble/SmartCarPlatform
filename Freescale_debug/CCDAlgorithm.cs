@@ -161,7 +161,7 @@ namespace Freescale_debug
         }
 
         #region 6.CCD图像
-        public void CCD_DrawActual(PictureBox pictureBoxImage)
+        public void DrawCCDPicture(PictureBox pictureBoxImage)
         {
             if (ccdStr.Length != ccdLength)
                 return;
@@ -201,7 +201,7 @@ namespace Freescale_debug
             pictureBoxImage.Image = bitmap;
         }
 
-        public void CCD_DrawPath(Bitmap bitmap, PictureBox pictureBoxImage)
+        public void DrawCCDPath(Bitmap bitmap, PictureBox pictureBoxImage)
         {
             if (ccdStr.Length != ccdLength)
                 return;
