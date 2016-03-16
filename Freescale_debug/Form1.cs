@@ -15,6 +15,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using leomon;
+using TestLog4Net;
 using ZedGraph;
 
 namespace Freescale_debug
@@ -261,9 +262,6 @@ namespace Freescale_debug
                 }
                 else
                 {
-                    //text = sp.ReadExisting();
-                    //RecievedStringAdd += text;
-
                     var n = sp.BytesToRead;
                     var builder = new StringBuilder();
                     var buf = new byte[n];
@@ -297,11 +295,10 @@ namespace Freescale_debug
                 }
                 totalReceivedBytes += size;
                 Invoke(UpdateTextHandler, text);
-                //Thread.Sleep(50);
             }
-            catch (Exception ee)
+            catch (Exception ex)
             {
-                MessageBox.Show(ee.Message);
+                LogHelper.WriteLog(typeof(Form1), ex);
             }
 
             finally
@@ -436,18 +433,19 @@ namespace Freescale_debug
                     int length = ccdAlgorithm.GetCCDLength();
                     label_CCD_Width.Text = @"CCD宽度：" + length;
 
-                    if (Convert.ToInt16(splittedMessage.ElementAt(2 + 4 * k)) == 1) //CCD1
+                    int child = Convert.ToInt16(splittedMessage.ElementAt(2 + 4*k));
+                    if (child == 1) //CCD1
                     {
                         ccdAlgorithm.DrawCCDPicture(pictureBox_CCD1);
 
                         //绘制路径曲线
                         ccdAlgorithm.DrawCCDPath(_bitmapOld, pictureBox_CCD_Path);
                     }
-                    else if (Convert.ToInt16(splittedMessage.ElementAt(2 + 4 * k)) == 2) //CCD2
+                    else if (child == 2) //CCD2
                     {
                         ccdAlgorithm.DrawCCDPicture(pictureBox_CCD2);
                     }
-                    else if (Convert.ToInt16(splittedMessage.ElementAt(2 + 4 * k)) == 3) //CCD3
+                    else if (child == 3) //CCD3
                     {
                         ccdAlgorithm.DrawCCDPicture(pictureBox_CCD3);
                     }
@@ -464,7 +462,7 @@ namespace Freescale_debug
                     int id = Convert.ToInt16(splittedMessage.ElementAt(2 + 4 * k));
                     var value = Convert.ToDouble(splittedMessage.ElementAt(3 + 4 * k)) / 1000;
 
-                    ReadFromChipAndDrawToScop(id, value);
+                    ReadFromChipAndDrawToScope(id, value);
                 }
                 else if (father == 5) //读取参数值(PID)
                 {
@@ -516,10 +514,8 @@ namespace Freescale_debug
             }
         }
 
-        private void ReadFromChipAndDrawToScop(int id, double value)
+        private void ReadFromChipAndDrawToScope(int id, double value)
         {
-            var hasCheckedItem = false;
-
             var total = ScopeNumber;
             var checkDrawing = new CheckBox[ScopeNumber];
 
@@ -528,57 +524,72 @@ namespace Freescale_debug
                 ClearCurves();
             }
 
+            InitCheckboxAndStartReflesh(checkDrawing, total);
+
+            ChangeAxisAndPlotToScope(id, value, checkDrawing);
+        }
+
+        private void InitCheckboxAndStartReflesh(CheckBox[] checkDrawing, int total)
+        {
             for (var i = 0; i < total; i++)
             {
                 checkDrawing[i] =
                     (CheckBox)
                         panel_Scope.Controls.Find("checkBox_Def" + Convert.ToString(i + 1), true)[0];
 
-                if (checkDrawing[i].Checked)
+                if (checkDrawing[i].Checked && !timer_fresh.Enabled)
                 {
-                    //如果有被选择的话，刷新绘图窗口
-                    hasCheckedItem = true;
                     timer_fresh.Start();
                     break;
                 }
             }
+        }
 
+        private void ChangeAxisAndPlotToScope(int id, double value, CheckBox[] checkDrawing)
+        {
+            int total = ScopeNumber;
             for (var i = 0; i < total; i++)
             {
                 if (checkDrawing[i].Checked &&
                     id == i + 1)
                 {
-                    hasCheckedItem = true;
-
                     zedGrpahNames[i].ValueZed = value;
 
-                    if ((_xmaxScale - zedGrpahNames[i].x) < (_xmaxScale / 5)) //自动改变坐标轴范围
-                    {
-                        _xmaxScale += _xmaxScale / 5;
-                        zedGraph_local.GraphPane.XAxis.Scale.Max = _xmaxScale;
-                    }
-                    if (_ymaxScale - zedGrpahNames[i].ValueZed < _ymaxScale / 5) //自动改变坐标轴范围
-                    {
-                        //YmaxScale += YmaxScale/5;
-                        _ymaxScale += -_ymaxScale + 1.3 * zedGrpahNames[i].ValueZed;
-                        zedGraph_local.GraphPane.YAxis.Scale.Max = _ymaxScale;
-                    }
-                    if (_yminScale - zedGrpahNames[i].ValueZed > _yminScale / 5) //自动改变坐标轴范围
-                    {
-                        _yminScale += _yminScale / 5;
-                        zedGraph_local.GraphPane.YAxis.Scale.Min = _yminScale;
-                    }
-
-                    zedGrpahNames[i].x += 1;
-
-                    zedGrpahNames[i].listZed.Add(Convert.ToDouble(zedGrpahNames[i].x), value);
-                    zedGrpahNames[i].zedPoint.ZedListX.Add(Convert.ToDouble(zedGrpahNames[i].x));
-                    zedGrpahNames[i].zedPoint.ZedListY.Add(value);
-
-                    if (zedGrpahNames[i].isSingleWindowShowed)
-                        coOb[i].CallEvent(zedGrpahNames[i].x, value);
+                    ChangeAxis(i);
+                    DrawScope(i, value);
                 }
             }
+        }
+
+        private void ChangeAxis(int i)
+        {
+            if ((_xmaxScale - zedGrpahNames[i].x) < (_xmaxScale / 5)) //改变XMax坐标轴范围
+            {
+                _xmaxScale += _xmaxScale / 5;
+                zedGraph_local.GraphPane.XAxis.Scale.Max = _xmaxScale;
+            }
+            if (_ymaxScale - zedGrpahNames[i].ValueZed < _ymaxScale / 5) //改变YMax坐标轴范围
+            {
+                _ymaxScale += -_ymaxScale + 1.3 * zedGrpahNames[i].ValueZed;
+                zedGraph_local.GraphPane.YAxis.Scale.Max = _ymaxScale;
+            }
+            if (_yminScale - zedGrpahNames[i].ValueZed > _yminScale / 5) //改变YMin坐标轴范围
+            {
+                _yminScale += _yminScale / 5;
+                zedGraph_local.GraphPane.YAxis.Scale.Min = _yminScale;
+            }
+        }
+
+        private void DrawScope(int i, double value)
+        {
+            zedGrpahNames[i].x += 1;
+
+            zedGrpahNames[i].listZed.Add(Convert.ToDouble(zedGrpahNames[i].x), value);
+            zedGrpahNames[i].zedPoint.ZedListX.Add(Convert.ToDouble(zedGrpahNames[i].x));
+            zedGrpahNames[i].zedPoint.ZedListY.Add(value);
+
+            if (zedGrpahNames[i].isSingleWindowShowed)
+                coOb[i].CallEvent(zedGrpahNames[i].x, value);
         }
 
         private void ClearCurves()
@@ -1695,8 +1706,6 @@ namespace Freescale_debug
 
         private void CheckDrawingOnCheckedChanged(object sender, EventArgs eventArgs)
         {
-            int total = ScopeNumber;
-
             var checkchangBox = (CheckBox) sender;
             var id = GetNumber(checkchangBox.Name) - 1;
 
@@ -1837,13 +1846,10 @@ namespace Freescale_debug
 
             try
             {
-                var tmpMessage = FormPackage(3, 2, "0");
-                mySerialPort.Write(tmpMessage);
+                var noMeaning = "0";
+                SendMessageAndEnqueue(3, 2, noMeaning);
 
                 label28.Text = @"Loading....";
-                var tmpHandle = new GetEchoForm(0, tmpMessage);
-                _queueEchoControl.Enqueue(tmpHandle);
-                timer_Send2GetEcho.Start();
             }
             catch (Exception ee)
             {
@@ -1874,7 +1880,6 @@ namespace Freescale_debug
 
                 //...
                 sw.Close();
-                fs.Close();
             }
         }
 
@@ -1910,7 +1915,6 @@ namespace Freescale_debug
                 _isLoadHistory = true;
 
                 sr.Close();
-                fs.Close();
             }
         }
 

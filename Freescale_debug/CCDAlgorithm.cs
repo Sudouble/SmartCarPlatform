@@ -41,7 +41,6 @@ namespace Freescale_debug
                     originCCDBuff.ElementAt(i + 1) == '|' &&
                     originCCDBuff.ElementAt(i + 2) == '2' &&
                     originCCDBuff.ElementAt(i + 3) == '|' &&
-                    //recBuff.ElementAt(i + 4) == '1' &&
                     originCCDBuff.ElementAt(i + 5) == '|' &&
                     originCCDBuff.ElementAt(i + 6) == '(')
                 {

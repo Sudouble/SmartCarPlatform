@@ -40,6 +40,9 @@
     <Reference Include="Leomon">
       <HintPath>Libs\Leomon.dll</HintPath>
     </Reference>
+    <Reference Include="log4net">
+      <HintPath>Libs\log4net.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Windows.Forms.DataVisualization" />
@@ -73,6 +76,7 @@
     <Compile Include="LoadingPage.Designer.cs">
       <DependentUpon>LoadingPage.cs</DependentUpon>
     </Compile>
+    <Compile Include="LogHelper.cs" />
     <Compile Include="PID.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

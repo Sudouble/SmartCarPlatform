@@ -29,7 +29,7 @@ namespace Freescale_debug
             coV.ValueUpdatedEvent += co_UpdateCurveEvent;
             curveNumber = id;
             curveName = name;
-            Text = name + @"——曲线" + (curveNumber+1) + @"——" + @"飞思卡尔调试平台 V1.1";
+            Text = curveName + @"——曲线" + (curveNumber + 1) + @"——" + @"飞思卡尔调试平台 V1.1";
         }
 
         public override sealed string Text
@@ -127,8 +127,7 @@ namespace Freescale_debug
                     else
                     {
                         zedGraph_Single.GraphPane.XAxis.Scale.Min = (int) _valueXStart - _zedWidth < 0
-                            ? 0
-                            : (int) _valueXStart - _zedWidth;
+                            ? 0 : (int) _valueXStart - _zedWidth;
                         zedGraph_Single.GraphPane.XAxis.Scale.Max = (int) _valueXStart + 0.2*_zedWidth;
                         _listZed.Add(_valueXStart++, y);
                     }
