@@ -501,7 +501,7 @@ namespace Freescale_debug
 
         private void ReadRealtimeFromChip(int electNum, string realTimeStr)
         {
-            int totalContolsNum = Convert.ToInt16(textBox_Electricity_Number.Text);
+            int totalContolsNum = Convert.ToInt16(textBox_Realtime_Number.Text);
             if (electNum <= totalContolsNum) //发送的传感器数据比现有的小
             {
                 var txtBox = (TextBox)
@@ -1169,7 +1169,9 @@ namespace Freescale_debug
 
             var tmpHandle = new GetEchoForm(0, messgae);
             _queueEchoControl.Enqueue(tmpHandle);
-            timer_Send2GetEcho.Start();
+            
+            if (!timer_Send2GetEcho.Enabled)
+                timer_Send2GetEcho.Start();
         }
 
         private void button_ModifyPID_Steer_Click(object sender, EventArgs e)
@@ -1225,9 +1227,9 @@ namespace Freescale_debug
             var stand_I = Convert.ToDouble(textBox_Stand_I.Text)*1000;
             var stand_D = Convert.ToDouble(textBox_Stand_D.Text)*1000;
 
-            var tmpMessageStand = "P" + Math.Floor(stand_P) +
-                                  "I" + Math.Floor(stand_I) +
-                                  "D" + Math.Floor(stand_D);
+            var tmpMessageStand = "P" + Math.Floor(stand_P).ToString() +
+                                  "I" + Math.Floor(stand_I).ToString() +
+                                  "D" + Math.Floor(stand_D).ToString();
 
             try
             {
@@ -1247,9 +1249,9 @@ namespace Freescale_debug
             var speed_I = Convert.ToDouble(textBox_Speed_I.Text)*1000;
             var speed_D = Convert.ToDouble(textBox_Speed_D.Text)*1000;
 
-            var tmpMessageSpeed = "P" + Math.Floor(speed_P) +
-                                  "I" + Math.Floor(speed_I) +
-                                  "D" + Math.Floor(speed_D);
+            var tmpMessageSpeed = "P" + Math.Floor(speed_P).ToString() +
+                                  "I" + Math.Floor(speed_I).ToString() +
+                                  "D" + Math.Floor(speed_D).ToString();
             try
             {
                 SaveConfig(SavefileName);
@@ -1268,9 +1270,9 @@ namespace Freescale_debug
             var direction_I = Convert.ToDouble(textBox_Direction_I.Text)*1000;
             var direction_D = Convert.ToDouble(textBox_Direction_D.Text)*1000;
 
-            var tmpMessageDirection = "P" + Math.Floor(direction_P) +
-                                      "I" + Math.Floor(direction_I) +
-                                      "D" + Math.Floor(direction_D);
+            var tmpMessageDirection = "P" + Math.Floor(direction_P).ToString() +
+                                      "I" + Math.Floor(direction_I).ToString() +
+                                      "D" + Math.Floor(direction_D).ToString();
 
             try
             {
@@ -1327,6 +1329,18 @@ namespace Freescale_debug
             {
                 MessageBox.Show(@"请输入需要的参数数量！", @"错误");
                 return;
+            }
+        }
+
+        private void textBox_DIY_Number_TextChanged(object sender, EventArgs e)
+        {
+            var t = sender as TextBox;
+            Regex reg = new Regex("[0-9]{1,}");//new Regex(@"/d+[/.]?(/d+)?");
+
+            if (t != null && !reg.IsMatch(t.Text))
+            {
+                MessageBox.Show(@"请输入浮点或整数！");
+                t.Text = "10";
             }
         }
 
@@ -1428,12 +1442,12 @@ namespace Freescale_debug
         private void DIYTextboxValueChanged(object sender, EventArgs eventArgs)
         {
             var t = sender as TextBox;
-            //Regex reg = new Regex("^(-?/d+)(/./d+)?$");//new Regex(@"/d+[/.]?(/d+)?");
+            //Regex reg = new Regex("^([0-9]{1,})$");//new Regex(@"/d+[/.]?(/d+)?");
 
-            //if (t != null && reg.IsMatch(t.Text))
+            //if (t != null && !reg.IsMatch(t.Text))
             //{
             //    MessageBox.Show(@"请输入浮点或整数！");
-            //    t.Text = "";
+            //    t.Text = "10";
             //}
         }
 
@@ -1544,7 +1558,7 @@ namespace Freescale_debug
         {
             panel_Electricity.AutoScroll = true;
             panel_Electricity.Controls.Clear();
-            var total = int.Parse(textBox_Electricity_Number.Text);
+            var total = int.Parse(textBox_Realtime_Number.Text);
 
             for (var i = 0; i < total; i++)
             {
@@ -1577,7 +1591,7 @@ namespace Freescale_debug
         }
         private Boolean isRealTimeValide()
         {
-            int number = Convert.ToInt16(textBox_Electricity_Number.Text);
+            int number = Convert.ToInt16(textBox_Realtime_Number.Text);
             if (number < 1)
             {
                 MessageBox.Show(@"请输入需要的参数数量！", @"错误");
@@ -2238,5 +2252,7 @@ namespace Freescale_debug
             } //Scope End
         }
         #endregion
+
+        
     }
 }

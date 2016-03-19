@@ -148,10 +148,10 @@ namespace Freescale_debug
         private void WriteRealTimeSetup(Editor editor)
         {
             //保存实时变量数量
-            editor.PutString("Electricity_Num", textBox_Electricity_Number.Text);
+            editor.PutString("Electricity_Num", textBox_Realtime_Number.Text);
 
             //保存实时变量的其他信息
-            int total = Convert.ToInt32(textBox_Electricity_Number.Text);
+            int total = Convert.ToInt32(textBox_Realtime_Number.Text);
             for (int i = 0; i < total; i++)
             {
                 TextBox[] txtBox = new TextBox[2];  //用控件数组来定义每一行的TextBox,总共2个TextBox
@@ -277,7 +277,7 @@ namespace Freescale_debug
         }
         private void ReadRealTimeSetup(SharedPreferences sp)
         {
-            textBox_Electricity_Number.Text = sp.GetString("Electricity_Num", "1");
+            textBox_Realtime_Number.Text = sp.GetString("Electricity_Num", "1");
         }
         private void ResetToDefaultSettings()
         {

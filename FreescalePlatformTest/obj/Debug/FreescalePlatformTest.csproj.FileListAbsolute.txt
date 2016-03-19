@@ -1,0 +1,10 @@
+F:\Project_Compotition\6.MyFreescal_10th\New_for_platform\FreescalePlatform\FreescalePlatformTest\bin\Debug\FreescalePlatformTest.dll
+F:\Project_Compotition\6.MyFreescal_10th\New_for_platform\FreescalePlatform\FreescalePlatformTest\bin\Debug\FreescalePlatformTest.pdb
+F:\Project_Compotition\6.MyFreescal_10th\New_for_platform\FreescalePlatform\FreescalePlatformTest\bin\Debug\Freescale_debug.exe
+F:\Project_Compotition\6.MyFreescal_10th\New_for_platform\FreescalePlatform\FreescalePlatformTest\bin\Debug\Leomon.dll
+F:\Project_Compotition\6.MyFreescal_10th\New_for_platform\FreescalePlatform\FreescalePlatformTest\bin\Debug\ZedGraph.dll
+F:\Project_Compotition\6.MyFreescal_10th\New_for_platform\FreescalePlatform\FreescalePlatformTest\bin\Debug\log4net.dll
+F:\Project_Compotition\6.MyFreescal_10th\New_for_platform\FreescalePlatform\FreescalePlatformTest\bin\Debug\Freescale_debug.pdb
+F:\Project_Compotition\6.MyFreescal_10th\New_for_platform\FreescalePlatform\FreescalePlatformTest\obj\Debug\FreescalePlatformTest.csprojResolveAssemblyReference.cache
+F:\Project_Compotition\6.MyFreescal_10th\New_for_platform\FreescalePlatform\FreescalePlatformTest\obj\Debug\FreescalePlatformTest.dll
+F:\Project_Compotition\6.MyFreescal_10th\New_for_platform\FreescalePlatform\FreescalePlatformTest\obj\Debug\FreescalePlatformTest.pdb

@@ -121,7 +121,7 @@ namespace Freescale_debug
             this.tabPage_DAC_Value = new System.Windows.Forms.TabPage();
             this.button_electricity_NumConfirm = new System.Windows.Forms.Button();
             this.label23 = new System.Windows.Forms.Label();
-            this.textBox_Electricity_Number = new System.Windows.Forms.TextBox();
+            this.textBox_Realtime_Number = new System.Windows.Forms.TextBox();
             this.panel_Electricity = new System.Windows.Forms.Panel();
             this.tabPage_Camera = new System.Windows.Forms.TabPage();
             this.checkBox_Camera_ONOFF = new System.Windows.Forms.CheckBox();
@@ -1071,6 +1071,7 @@ namespace Freescale_debug
             this.textBox_DIY_Number.Size = new System.Drawing.Size(100, 21);
             this.textBox_DIY_Number.TabIndex = 34;
             this.textBox_DIY_Number.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.textBox_DIY_Number.TextChanged += new System.EventHandler(this.textBox_DIY_Number_TextChanged);
             // 
             // panel_add_DIYControls
             // 
@@ -1097,7 +1098,7 @@ namespace Freescale_debug
             // 
             this.tabPage_DAC_Value.Controls.Add(this.button_electricity_NumConfirm);
             this.tabPage_DAC_Value.Controls.Add(this.label23);
-            this.tabPage_DAC_Value.Controls.Add(this.textBox_Electricity_Number);
+            this.tabPage_DAC_Value.Controls.Add(this.textBox_Realtime_Number);
             this.tabPage_DAC_Value.Controls.Add(this.panel_Electricity);
             this.tabPage_DAC_Value.Location = new System.Drawing.Point(4, 22);
             this.tabPage_DAC_Value.Name = "tabPage_DAC_Value";
@@ -1125,13 +1126,13 @@ namespace Freescale_debug
             this.label23.TabIndex = 39;
             this.label23.Text = "请输入变量数量：";
             // 
-            // textBox_Electricity_Number
+            // textBox_Realtime_Number
             // 
-            this.textBox_Electricity_Number.Location = new System.Drawing.Point(149, 35);
-            this.textBox_Electricity_Number.Name = "textBox_Electricity_Number";
-            this.textBox_Electricity_Number.Size = new System.Drawing.Size(100, 21);
-            this.textBox_Electricity_Number.TabIndex = 38;
-            this.textBox_Electricity_Number.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.textBox_Realtime_Number.Location = new System.Drawing.Point(149, 35);
+            this.textBox_Realtime_Number.Name = "textBox_Realtime_Number";
+            this.textBox_Realtime_Number.Size = new System.Drawing.Size(100, 21);
+            this.textBox_Realtime_Number.TabIndex = 38;
+            this.textBox_Realtime_Number.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             // 
             // panel_Electricity
             // 
@@ -1640,7 +1641,7 @@ namespace Freescale_debug
             this.Controls.Add(this.groupBox_portSetting);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "Form1";
-            this.Text = "飞思卡尔调试平台 V1.1";
+            this.Text = "飞思卡尔调试平台 V1.2";
             this.Activated += new System.EventHandler(this.Form1_Activated);
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Form1_FormClosed);
             this.Load += new System.EventHandler(this.Form1_Load);
@@ -1792,7 +1793,7 @@ namespace Freescale_debug
         private TextBox textBox_DIY_Number;
         private Button button_electricity_NumConfirm;
         private Label label23;
-        private TextBox textBox_Electricity_Number;
+        private TextBox textBox_Realtime_Number;
         private Panel panel_Electricity;
         private ComboBox comboBox1;
         private ZedGraphControl zedGraph_local;

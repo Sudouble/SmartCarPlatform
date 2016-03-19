@@ -29,7 +29,7 @@ namespace Freescale_debug
             coV.ValueUpdatedEvent += co_UpdateCurveEvent;
             curveNumber = id;
             curveName = name;
-            Text = curveName + @"——曲线" + (curveNumber + 1) + @"——" + @"飞思卡尔调试平台 V1.1";
+            Text = curveName + @"——曲线" + (curveNumber + 1) + @"——" + @"飞思卡尔调试平台 V1.2";
         }
 
         public override sealed string Text
