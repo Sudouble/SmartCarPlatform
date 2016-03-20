@@ -4,21 +4,19 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Freescale_debug
 {
-    class CCDAlgorithm
+    internal class CCDAlgorithm
     {
-        private string originCCDStr = "";
-        private List<int> originCCDBuff = new List<int>();
+        private readonly List<int> CCDBuff = new List<int>();
+        private int ccdLength;
 
         private string ccdStr = "";
-        private List<int> CCDBuff = new List<int>();
-        private int ccdLength = 0;
         private int height = 0;
+        private readonly List<int> originCCDBuff = new List<int>();
+        private readonly string originCCDStr = "";
 
         public CCDAlgorithm(string orginStr, List<int> recvBuff)
         {
@@ -68,6 +66,7 @@ namespace Freescale_debug
             ccdStr = ccdData;
             ccdLength = length;
         }
+
         public int GetCCDLength()
         {
             return ccdLength;
@@ -77,6 +76,7 @@ namespace Freescale_debug
         {
             return ccdStr;
         }
+
         public List<int> GetCCDGreyValue()
         {
             return CCDBuff;
@@ -95,11 +95,12 @@ namespace Freescale_debug
             }
             return result;
         }
+
         private int Average_ccd(List<int> p)
         {
             var sum = p.Select((t, i) => p.ElementAt(i)).Sum();
 
-            var thresold = sum / p.Count;
+            var thresold = sum/p.Count;
 
             if (thresold > 230)
                 thresold = 100;
@@ -112,6 +113,7 @@ namespace Freescale_debug
 
             return thresold;
         }
+
         private int Otsu(List<int> p)
         {
             //处理全是黑色时候的情况
@@ -132,11 +134,11 @@ namespace Freescale_debug
                 cnt = tmpData[j];
                 if (cnt == 0) continue; // 优化加速
                 count += tmpData[j];
-                total_low += cnt * j;
-                u0 = total_low / count;
+                total_low += cnt*j;
+                u0 = total_low/count;
                 if (count >= 118) break; // 优化加速 122 - 5+1
-                u1 = (total - total_low) / (118 - count);
-                g = ((u0 - u1) * (u0 - u1)) * ((count * (118 - count))) / 16384;
+                u1 = (total - total_low)/(118 - count);
+                g = (u0 - u1)*(u0 - u1)*count*(118 - count)/16384;
                 if (g > max)
                 {
                     max = g;
@@ -145,6 +147,7 @@ namespace Freescale_debug
             }
             return threshold;
         }
+
         private string CCD_FindBoard(List<int> p)
         {
             var black = "Border";
@@ -160,6 +163,7 @@ namespace Freescale_debug
         }
 
         #region 6.CCD图像
+
         public void DrawCCDPicture(PictureBox pictureBoxImage)
         {
             if (ccdStr.Length != ccdLength)
@@ -170,26 +174,26 @@ namespace Freescale_debug
                 bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height),
                     ImageLockMode.ReadWrite, bitmap.PixelFormat);
 
-            var bytesPerPixel = Image.GetPixelFormatSize(bitmap.PixelFormat) / 8;
-            var byteCount = bitmapData.Stride * bitmap.Height;
+            var bytesPerPixel = Image.GetPixelFormatSize(bitmap.PixelFormat)/8;
+            var byteCount = bitmapData.Stride*bitmap.Height;
             var pixels = new byte[byteCount];
             var ptrFirstPixel = bitmapData.Scan0;
             Marshal.Copy(ptrFirstPixel, pixels, 0, pixels.Length);
             var heightInPixels = bitmapData.Height;
-            var widthInBytes = bitmapData.Width * bytesPerPixel;
+            var widthInBytes = bitmapData.Width*bytesPerPixel;
 
             for (var y = 0; y < heightInPixels; y++)
             {
-                var currentLine = y * bitmapData.Stride;
+                var currentLine = y*bitmapData.Stride;
 
                 for (var x = 0; x < widthInBytes; x = x + bytesPerPixel)
                 {
-                    var grey = CCDBuff.ElementAt(Convert.ToInt16(x / 4));
+                    var grey = CCDBuff.ElementAt(Convert.ToInt16(x/4));
 
                     // calculate new pixel value
-                    pixels[currentLine + x] = (byte)grey;
-                    pixels[currentLine + x + 1] = (byte)grey;
-                    pixels[currentLine + x + 2] = (byte)grey;
+                    pixels[currentLine + x] = (byte) grey;
+                    pixels[currentLine + x + 1] = (byte) grey;
+                    pixels[currentLine + x + 2] = (byte) grey;
                     pixels[currentLine + x + 3] = 255;
                 }
             }
@@ -209,18 +213,18 @@ namespace Freescale_debug
                 bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height),
                     ImageLockMode.ReadWrite, bitmap.PixelFormat);
 
-            var bytesPerPixel = Image.GetPixelFormatSize(bitmap.PixelFormat) / 8;
-            var byteCount = bitmapData.Stride * bitmap.Height;
+            var bytesPerPixel = Image.GetPixelFormatSize(bitmap.PixelFormat)/8;
+            var byteCount = bitmapData.Stride*bitmap.Height;
             var pixels = new byte[byteCount];
             var ptrFirstPixel = bitmapData.Scan0;
             Marshal.Copy(ptrFirstPixel, pixels, 0, pixels.Length);
             var heightInPixels = bitmapData.Height;
-            var widthInBytes = bitmapData.Width * bytesPerPixel;
+            var widthInBytes = bitmapData.Width*bytesPerPixel;
 
             for (var y = 1; y < heightInPixels; y++)
             {
-                var currentLine = y * bitmapData.Stride;
-                var formerLine = (y - 1) * bitmapData.Stride;
+                var currentLine = y*bitmapData.Stride;
+                var formerLine = (y - 1)*bitmapData.Stride;
 
                 for (var x = 0; x < widthInBytes; x = x + bytesPerPixel)
                 {
@@ -228,26 +232,26 @@ namespace Freescale_debug
                     int oldGreen = pixels[currentLine + x + 1];
                     int oldRed = pixels[currentLine + x + 2];
 
-                    pixels[formerLine + x] = (byte)oldBlue;
-                    pixels[formerLine + x + 1] = (byte)oldGreen;
-                    pixels[formerLine + x + 2] = (byte)oldRed;
+                    pixels[formerLine + x] = (byte) oldBlue;
+                    pixels[formerLine + x + 1] = (byte) oldGreen;
+                    pixels[formerLine + x + 2] = (byte) oldRed;
                     pixels[formerLine + x + 3] = 255;
                 }
             }
 
             for (var y = heightInPixels - 1; y < heightInPixels; y++)
             {
-                var currentLine = y * bitmapData.Stride;
+                var currentLine = y*bitmapData.Stride;
 
                 for (var x = 0; x < widthInBytes; x = x + bytesPerPixel)
                 {
                     var leng = CCDBuff.Count;
-                    var grey = CCDBuff.ElementAt(Convert.ToInt16(x / 4));
+                    var grey = CCDBuff.ElementAt(Convert.ToInt16(x/4));
 
                     // calculate new pixel value
-                    pixels[currentLine + x] = (byte)grey;
-                    pixels[currentLine + x + 1] = (byte)grey;
-                    pixels[currentLine + x + 2] = (byte)grey;
+                    pixels[currentLine + x] = (byte) grey;
+                    pixels[currentLine + x + 1] = (byte) grey;
+                    pixels[currentLine + x + 2] = (byte) grey;
                     pixels[currentLine + x + 3] = 255;
                 }
             }
@@ -257,6 +261,7 @@ namespace Freescale_debug
 
             pictureBoxImage.Image = bitmap;
         }
+
         #endregion
     }
 }

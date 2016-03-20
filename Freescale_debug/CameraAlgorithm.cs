@@ -1,25 +1,24 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Freescale_debug
 {
-    class CameraAlgorithm
+    internal class CameraAlgorithm
     {
-        private string originCameraStr = "";
         private string cameraStr = "";
-        private int width = 0;
-        private int height = 0;
+        private int height;
+        private readonly string originCameraStr = "";
+        private int width;
+
         public CameraAlgorithm(string orginStr)
         {
             originCameraStr = orginStr;
         }
+
         public void ApartMessage()
         {
             var firstRightIndex = originCameraStr.IndexOf('(');
@@ -52,26 +51,26 @@ namespace Freescale_debug
                     bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height),
                         ImageLockMode.ReadWrite, bitmap.PixelFormat);
 
-                var bytesPerPixel = Image.GetPixelFormatSize(bitmap.PixelFormat) / 8;
-                var byteCount = bitmapData.Stride * bitmap.Height;
+                var bytesPerPixel = Image.GetPixelFormatSize(bitmap.PixelFormat)/8;
+                var byteCount = bitmapData.Stride*bitmap.Height;
                 var pixels = new byte[byteCount];
                 var ptrFirstPixel = bitmapData.Scan0;
                 Marshal.Copy(ptrFirstPixel, pixels, 0, pixels.Length);
                 var heightInPixels = bitmapData.Height;
-                var widthInBytes = bitmapData.Width * bytesPerPixel;
+                var widthInBytes = bitmapData.Width*bytesPerPixel;
 
                 for (var y = 0; y < heightInPixels; y++)
                 {
-                    var currentLine = y * bitmapData.Stride;
+                    var currentLine = y*bitmapData.Stride;
 
                     for (var x = 0; x < widthInBytes; x = x + bytesPerPixel)
                     {
-                        int grey = Convert.ToInt16(cameraStr.ElementAt(Convert.ToInt16(y + x / 4)));
+                        int grey = Convert.ToInt16(cameraStr.ElementAt(Convert.ToInt16(y + x/4)));
 
                         // calculate new pixel value
-                        pixels[currentLine + x] = (byte)grey;
-                        pixels[currentLine + x + 1] = (byte)grey;
-                        pixels[currentLine + x + 2] = (byte)grey;
+                        pixels[currentLine + x] = (byte) grey;
+                        pixels[currentLine + x + 1] = (byte) grey;
+                        pixels[currentLine + x + 2] = (byte) grey;
                         pixels[currentLine + x + 3] = 255;
                     }
                 }
@@ -94,6 +93,7 @@ namespace Freescale_debug
         {
             return height;
         }
+
         public int GetWidth()
         {
             return width;

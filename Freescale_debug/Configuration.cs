@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Windows.Forms;
 using leomon;
-using Office;
 
 namespace Freescale_debug
 {
@@ -10,7 +9,7 @@ namespace Freescale_debug
     {
         private void SaveConfig(string fileName)
         {
-            Editor editor = new Editor();
+            var editor = new Editor();
 
             WritePortSetup(editor);
             WritePidSetup(editor);
@@ -20,9 +19,10 @@ namespace Freescale_debug
 
             WriteToFile(fileName, editor);
         }
+
         private void LoadConfig(string fileName)
         {
-            SharedPreferences sp = new SharedPreferences(fileName);
+            var sp = new SharedPreferences(fileName);
             if (sp.ConfigFileExists)
             {
                 ReadPortSetup(sp);
@@ -38,6 +38,7 @@ namespace Freescale_debug
                 ResetToDefaultSettings();
             }
         }
+
         private void WritePortSetup(Editor editor)
         {
             if (hasPorts)
@@ -113,34 +114,35 @@ namespace Freescale_debug
             editor.PutInt32("DIY_Number", Convert.ToInt32(textBox_DIY_Number.Text));
 
             //保存自定义参数的其他信息
-            int total = Convert.ToInt32(textBox_DIY_Number.Text);
-            for (int i = 0; i < total; i++)
+            var total = Convert.ToInt32(textBox_DIY_Number.Text);
+            for (var i = 0; i < total; i++)
             {
-                CheckBox checkboxSelect = new CheckBox();
-                checkboxSelect = (CheckBox)panel_add_DIYControls.Controls.Find("checkBox_Def" + Convert.ToString(i + 1), true)[0];
+                var checkboxSelect = new CheckBox();
+                checkboxSelect =
+                    (CheckBox) panel_add_DIYControls.Controls.Find("checkBox_Def" + Convert.ToString(i + 1), true)[0];
 
-                TextBox[] txtBox = new TextBox[2];  //用控件数组来定义每一行的TextBox,总共3个TextBox
-                txtBox[0] = (TextBox)panel_add_DIYControls.Controls.Find("txtName" + Convert.ToString(i + 1), true)[0];
-                txtBox[1] = (TextBox)panel_add_DIYControls.Controls.Find("txtValue" + Convert.ToString(i + 1), true)[0];
+                var txtBox = new TextBox[2]; //用控件数组来定义每一行的TextBox,总共3个TextBox
+                txtBox[0] = (TextBox) panel_add_DIYControls.Controls.Find("txtName" + Convert.ToString(i + 1), true)[0];
+                txtBox[1] = (TextBox) panel_add_DIYControls.Controls.Find("txtValue" + Convert.ToString(i + 1), true)[0];
 
-                Button btn = new Button();
-                btn = (Button)panel_add_DIYControls.Controls.Find("buttonSubmit" + Convert.ToString(i + 1), true)[0];
+                var btn = new Button();
+                btn = (Button) panel_add_DIYControls.Controls.Find("buttonSubmit" + Convert.ToString(i + 1), true)[0];
 
-                string tmpMessageStand = txtBox[1].Text;
+                var tmpMessageStand = txtBox[1].Text;
 
                 //状态栏选择情况
-                string checkState = string.Format("DIY_CheckState{0}", i + 1);
+                var checkState = string.Format("DIY_CheckState{0}", i + 1);
                 editor.PutBoolean(checkState, checkboxSelect.Checked);
 
                 //自己定义的变量名称
-                string txtName_DIY = string.Format("DIY_TextName{0}", i + 1);
+                var txtName_DIY = string.Format("DIY_TextName{0}", i + 1);
                 editor.PutString(txtName_DIY, txtBox[0].Text);
 
                 //自定义参数的数值
-                string txtValue_DIY = string.Format("DIY_TextValue{0}", i + 1);
+                var txtValue_DIY = string.Format("DIY_TextValue{0}", i + 1);
                 editor.PutString(txtValue_DIY, txtBox[1].Text);
 
-                string button_DIY = string.Format("buttonSubmit{0}", i + 1);
+                var button_DIY = string.Format("buttonSubmit{0}", i + 1);
                 editor.PutString(button_DIY, btn.Text);
             }
         }
@@ -151,19 +153,20 @@ namespace Freescale_debug
             editor.PutString("Electricity_Num", textBox_Realtime_Number.Text);
 
             //保存实时变量的其他信息
-            int total = Convert.ToInt32(textBox_Realtime_Number.Text);
-            for (int i = 0; i < total; i++)
+            var total = Convert.ToInt32(textBox_Realtime_Number.Text);
+            for (var i = 0; i < total; i++)
             {
-                TextBox[] txtBox = new TextBox[2];  //用控件数组来定义每一行的TextBox,总共2个TextBox
-                txtBox[0] = (TextBox)panel_Electricity.Controls.Find("txtElectName" + Convert.ToString(i + 1), true)[0];
-                txtBox[1] = (TextBox)panel_Electricity.Controls.Find("txtElectValue" + Convert.ToString(i + 1), true)[0];
+                var txtBox = new TextBox[2]; //用控件数组来定义每一行的TextBox,总共2个TextBox
+                txtBox[0] = (TextBox) panel_Electricity.Controls.Find("txtElectName" + Convert.ToString(i + 1), true)[0];
+                txtBox[1] =
+                    (TextBox) panel_Electricity.Controls.Find("txtElectValue" + Convert.ToString(i + 1), true)[0];
 
                 //变量名称
-                string txtNameElect = string.Format("textElectName{0}", i + 1);
+                var txtNameElect = string.Format("textElectName{0}", i + 1);
                 editor.PutString(txtNameElect, txtBox[0].Text);
 
                 //参数的数值
-                string txtValueElect = string.Format("txtElectValue{0}", i + 1);
+                var txtValueElect = string.Format("txtElectValue{0}", i + 1);
                 editor.PutString(txtValueElect, txtBox[1].Text);
             }
         }
@@ -171,21 +174,21 @@ namespace Freescale_debug
         private void WriteScopeSetup(Editor editor)
         {
             //保存虚拟示波器的变量情况
-            int totalScope = ScopeNumber;
-            for (int i = 0; i < totalScope; i++)
+            var totalScope = ScopeNumber;
+            for (var i = 0; i < totalScope; i++)
             {
                 CheckBox checkDrawing;
-                checkDrawing = (CheckBox)panel_Scope.Controls.Find("checkBox_Def" + Convert.ToString(i + 1), true)[0];
+                checkDrawing = (CheckBox) panel_Scope.Controls.Find("checkBox_Def" + Convert.ToString(i + 1), true)[0];
 
-                TextBox txtBox;  //用控件数组来定义每一行的TextBox,总共3个TextBox
-                txtBox = (TextBox)panel_Scope.Controls.Find("txtName" + Convert.ToString(i + 1), true)[0];
+                TextBox txtBox; //用控件数组来定义每一行的TextBox,总共3个TextBox
+                txtBox = (TextBox) panel_Scope.Controls.Find("txtName" + Convert.ToString(i + 1), true)[0];
 
                 //状态栏选择情况
-                string checkState = string.Format("SCOPE_CheckState{0}", i + 1);
+                var checkState = string.Format("SCOPE_CheckState{0}", i + 1);
                 editor.PutBoolean(checkState, checkDrawing.Checked);
 
                 //自己定义的变量名称
-                string txtNameDIY = string.Format("SCOPE_TextName{0}", i + 1);
+                var txtNameDIY = string.Format("SCOPE_TextName{0}", i + 1);
                 editor.PutString(txtNameDIY, txtBox.Text);
             }
         }
@@ -193,7 +196,7 @@ namespace Freescale_debug
         private static void WriteToFile(string fileName, Editor editor)
         {
             //=================================================================
-            SharedPreferences sp = new SharedPreferences(fileName);
+            var sp = new SharedPreferences(fileName);
             //记得调用该方法将上述内容一次写入并保存。
             sp.Save(editor);
         }
@@ -271,14 +274,17 @@ namespace Freescale_debug
             textBox_Direction_I.Text = sp.GetString("Direction_I", "1.0");
             textBox_Direction_D.Text = sp.GetString("Direction_D", "1.0");
         }
+
         private void ReadDIYNumberSetup(SharedPreferences sp)
         {
-            textBox_DIY_Number.Text = sp.GetInt32("DIY_Number", 0).ToString();
+            textBox_DIY_Number.Text = sp.GetInt32("DIY_Number", 1).ToString();
         }
+
         private void ReadRealTimeSetup(SharedPreferences sp)
         {
             textBox_Realtime_Number.Text = sp.GetString("Electricity_Num", "1");
         }
+
         private void ResetToDefaultSettings()
         {
             //默认波特率

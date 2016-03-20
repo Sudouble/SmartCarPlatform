@@ -171,6 +171,7 @@ namespace Freescale_debug
             this.timer_Send2GetEcho = new System.Windows.Forms.Timer(this.components);
             this.timer_fresh = new System.Windows.Forms.Timer(this.components);
             this.label29 = new System.Windows.Forms.Label();
+            this.button_DIY_ResetNames = new System.Windows.Forms.Button();
             tabControl1 = new System.Windows.Forms.TabControl();
             tabControl1.SuspendLayout();
             this.tabPage_Serial.SuspendLayout();
@@ -1032,6 +1033,7 @@ namespace Freescale_debug
             // 
             // tabPage_DIY_Algorithm
             // 
+            this.tabPage_DIY_Algorithm.Controls.Add(this.button_DIY_ResetNames);
             this.tabPage_DIY_Algorithm.Controls.Add(this.button_DIY_NumConfirm);
             this.tabPage_DIY_Algorithm.Controls.Add(this.label22);
             this.tabPage_DIY_Algorithm.Controls.Add(this.textBox_DIY_Number);
@@ -1133,6 +1135,7 @@ namespace Freescale_debug
             this.textBox_Realtime_Number.Size = new System.Drawing.Size(100, 21);
             this.textBox_Realtime_Number.TabIndex = 38;
             this.textBox_Realtime_Number.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.textBox_Realtime_Number.TextChanged += new System.EventHandler(this.textBox_Realtime_Number_TextChanged);
             // 
             // panel_Electricity
             // 
@@ -1239,7 +1242,7 @@ namespace Freescale_debug
             this.tabPage_CCD.Padding = new System.Windows.Forms.Padding(3);
             this.tabPage_CCD.Size = new System.Drawing.Size(736, 539);
             this.tabPage_CCD.TabIndex = 3;
-            this.tabPage_CCD.Text = "CCD图像（无）";
+            this.tabPage_CCD.Text = "CCD图像";
             this.tabPage_CCD.UseVisualStyleBackColor = true;
             // 
             // label32
@@ -1629,6 +1632,16 @@ namespace Freescale_debug
             this.label29.TabIndex = 14;
             this.label29.Text = "Status:";
             // 
+            // button_DIY_ResetNames
+            // 
+            this.button_DIY_ResetNames.Location = new System.Drawing.Point(353, 21);
+            this.button_DIY_ResetNames.Name = "button_DIY_ResetNames";
+            this.button_DIY_ResetNames.Size = new System.Drawing.Size(75, 23);
+            this.button_DIY_ResetNames.TabIndex = 37;
+            this.button_DIY_ResetNames.Text = "重置名称";
+            this.button_DIY_ResetNames.UseVisualStyleBackColor = true;
+            this.button_DIY_ResetNames.Click += new System.EventHandler(this.button_DIY_ResetNames_Click);
+            // 
             // Form1
             // 
             this.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("$this.BackgroundImage")));
@@ -1831,6 +1844,7 @@ namespace Freescale_debug
         private Label label31;
         private Label label32;
         private PictureBox pictureBox_CCD3;
+        private Button button_DIY_ResetNames;
     }
 }
 

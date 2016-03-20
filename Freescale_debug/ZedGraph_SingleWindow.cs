@@ -1,26 +1,27 @@
 ﻿using System;
 using System.Drawing;
-using System.Security.AccessControl;
 using System.Windows.Forms;
 using ZedGraph;
 
 namespace Freescale_debug
 {
     public delegate void SingleWindowClosedDelegate(int id);
+
     public partial class ZedGraphSingleWindow : Form
     {
-        public event SingleWindowClosedDelegate SingnleClosedEvent;
-
-        private readonly int curveNumber;  //曲线号
-        private readonly string curveName; //曲线命
-        private double _valueXStart;
-        private int _zedWidth;
-        private Boolean _pauseFlag;
-
-        private readonly Color[] _colorLine = {Color.Green, Color.DodgerBlue, Color.Brown, Color.Chartreuse,
-                                             Color.CornflowerBlue, Color.Red, Color.Yellow, Color.Gray};
+        private readonly Color[] _colorLine =
+        {
+            Color.Green, Color.DodgerBlue, Color.Brown, Color.Chartreuse,
+            Color.CornflowerBlue, Color.Red, Color.Yellow, Color.Gray
+        };
 
         private readonly PointPairList _listZed = new PointPairList();
+        private readonly string curveName; //曲线命
+
+        private readonly int curveNumber; //曲线号
+        private bool _pauseFlag;
+        private double _valueXStart;
+        private int _zedWidth;
 
         public ZedGraphSingleWindow(int id, CallObject coV, string name)
         {
@@ -32,11 +33,13 @@ namespace Freescale_debug
             Text = curveName + @"——曲线" + (curveNumber + 1) + @"——" + @"飞思卡尔调试平台 V1.2";
         }
 
-        public override sealed string Text
+        public sealed override string Text
         {
             get { return base.Text; }
             set { base.Text = value; }
         }
+
+        public event SingleWindowClosedDelegate SingnleClosedEvent;
 
         private void ZedGraph_SingleWindow_Load(object sender, EventArgs e)
         {
@@ -45,7 +48,7 @@ namespace Freescale_debug
 
         private void ZedGraph_SingleWindow_FormClosed(object sender, FormClosedEventArgs e)
         {
-            if (SingnleClosedEvent != null) 
+            if (SingnleClosedEvent != null)
                 SingnleClosedEvent(curveNumber);
 
             DialogResult = DialogResult.OK;
@@ -61,7 +64,7 @@ namespace Freescale_debug
 
         private void InitzedGraph()
         {
-            GraphPane myPane = zedGraph_Single.GraphPane;
+            var myPane = zedGraph_Single.GraphPane;
 
             myPane.Title.IsVisible = false;
             myPane.XAxis.Title.Text = "time";
@@ -95,13 +98,13 @@ namespace Freescale_debug
         }
 
         /// <summary>
-        /// Display customized tooltips when the mouse hovers over a point
+        ///     Display customized tooltips when the mouse hovers over a point
         /// </summary>
         private string MyPointValueHandler(ZedGraphControl control, GraphPane pane,
-                        CurveItem curve, int iPt)
+            CurveItem curve, int iPt)
         {
             // Get the PointPair that is under the mouse
-            PointPair pt = curve[iPt];
+            var pt = curve[iPt];
 
             return curve.Label.Text + " is " + pt.Y.ToString("f2") + " units at " + pt.X.ToString("f1") + " days";
         }
@@ -127,7 +130,8 @@ namespace Freescale_debug
                     else
                     {
                         zedGraph_Single.GraphPane.XAxis.Scale.Min = (int) _valueXStart - _zedWidth < 0
-                            ? 0 : (int) _valueXStart - _zedWidth;
+                            ? 0
+                            : (int) _valueXStart - _zedWidth;
                         zedGraph_Single.GraphPane.XAxis.Scale.Max = (int) _valueXStart + 0.2*_zedWidth;
                         _listZed.Add(_valueXStart++, y);
                     }
@@ -157,22 +161,24 @@ namespace Freescale_debug
 
         private void textBox1_Leave(object sender, EventArgs e)
         {
-            TextBox txtbox = sender as TextBox;
+            var txtbox = sender as TextBox;
             if (txtbox != null && txtbox.Text.Trim() == @"")
             {
                 txtbox.Text = @"请输入X轴宽度";
                 txtbox.ForeColor = Color.Gray;
             }
         }
+
         private void textBox1_Enter(object sender, EventArgs e)
         {
-            TextBox txtbox = sender as TextBox;
+            var txtbox = sender as TextBox;
             if (txtbox != null && txtbox.Text.Trim() == @"请输入X轴宽度")
             {
                 txtbox.Text = @"";
                 txtbox.ForeColor = Color.Black;
             }
         }
+
         private void button_ShowRange_Click(object sender, EventArgs e)
         {
             //对x的范围进行更改
@@ -201,6 +207,7 @@ namespace Freescale_debug
 
     //进行窗体间传参的公共接口
     public delegate void ValueUpdatedHandler(double x, double y);
+
     public class CallObject
     {
         public event ValueUpdatedHandler ValueUpdatedEvent;
