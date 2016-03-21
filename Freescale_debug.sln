@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.40629.0
+VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Freescale_debug", "Freescale_debug\Freescale_debug.csproj", "{5C73F5B7-1A8D-459F-AFBD-EF5C5AE9AE51}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreescalePlatformTest", "FreescalePlatformTest\FreescalePlatformTest.csproj", "{6F8827B1-74E5-4172-A45D-73A468F8D780}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{5C73F5B7-1A8D-459F-AFBD-EF5C5AE9AE51}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5C73F5B7-1A8D-459F-AFBD-EF5C5AE9AE51}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5C73F5B7-1A8D-459F-AFBD-EF5C5AE9AE51}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6F8827B1-74E5-4172-A45D-73A468F8D780}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6F8827B1-74E5-4172-A45D-73A468F8D780}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6F8827B1-74E5-4172-A45D-73A468F8D780}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6F8827B1-74E5-4172-A45D-73A468F8D780}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

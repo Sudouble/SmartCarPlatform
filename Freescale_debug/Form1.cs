@@ -1264,7 +1264,9 @@ namespace Freescale_debug
         private void GetCustomOldNames(List<bool> state, List<string> names, List<string> value)
         {
             SharedPreferences sp = new SharedPreferences(SavefileName);
-            int oldNumber = sp.GetInt32("DIY_Number", 1);
+            int oldNumber = 0;
+            if(sp.ConfigFileExists)
+                oldNumber = sp.GetInt32("DIY_Number", 1);
 
             for (var i = 0; i < oldNumber; i++)
             {
@@ -1890,7 +1892,7 @@ namespace Freescale_debug
                 var noMeaning = "0";
                 SendMessageAndEnqueue(3, 2, noMeaning);
 
-                label28.Text = @"Loading....";
+                label28.Text = @"停车指令发送中...";
             }
             catch (Exception ee)
             {

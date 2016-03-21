@@ -117,57 +117,69 @@ namespace Freescale_debug
             var total = Convert.ToInt32(textBox_DIY_Number.Text);
             for (var i = 0; i < total; i++)
             {
-                var checkboxSelect = new CheckBox();
-                checkboxSelect =
-                    (CheckBox) panel_add_DIYControls.Controls.Find("checkBox_Def" + Convert.ToString(i + 1), true)[0];
+                var controlCheckState = panel_add_DIYControls.Controls.Find("checkBox_Def" + Convert.ToString(i + 1), true);
+                if (controlCheckState.Length > 0)
+                {
+                    var checkboxSelect = (CheckBox)controlCheckState[0];
 
-                var txtBox = new TextBox[2]; //用控件数组来定义每一行的TextBox,总共3个TextBox
-                txtBox[0] = (TextBox) panel_add_DIYControls.Controls.Find("txtName" + Convert.ToString(i + 1), true)[0];
-                txtBox[1] = (TextBox) panel_add_DIYControls.Controls.Find("txtValue" + Convert.ToString(i + 1), true)[0];
+                    var checkState = string.Format("DIY_CheckState{0}", i + 1);
+                    editor.PutBoolean(checkState, checkboxSelect.Checked);
+                }
 
-                var btn = new Button();
-                btn = (Button) panel_add_DIYControls.Controls.Find("buttonSubmit" + Convert.ToString(i + 1), true)[0];
+                var controlName = panel_add_DIYControls.Controls.Find("txtName" + Convert.ToString(i + 1), true);
+                if (controlName.Length > 0)
+                {
+                    var txtBox = (TextBox)controlName[0];
 
-                var tmpMessageStand = txtBox[1].Text;
+                    var txtName = string.Format("DIY_TextName{0}", i + 1);
+                    editor.PutString(txtName, txtBox.Text);
+                }
 
-                //状态栏选择情况
-                var checkState = string.Format("DIY_CheckState{0}", i + 1);
-                editor.PutBoolean(checkState, checkboxSelect.Checked);
+                var controlValue = panel_add_DIYControls.Controls.Find("txtValue" + Convert.ToString(i + 1), true);
+                if (controlValue.Length > 0)
+                {
+                    var txtBox = (TextBox)controlValue[0];
 
-                //自己定义的变量名称
-                var txtName_DIY = string.Format("DIY_TextName{0}", i + 1);
-                editor.PutString(txtName_DIY, txtBox[0].Text);
+                    var txtValue = string.Format("DIY_TextValue{0}", i + 1);
+                    editor.PutString(txtValue, txtBox.Text);
+                }
 
-                //自定义参数的数值
-                var txtValue_DIY = string.Format("DIY_TextValue{0}", i + 1);
-                editor.PutString(txtValue_DIY, txtBox[1].Text);
+                var controlButton = panel_add_DIYControls.Controls.Find("buttonSubmit" + Convert.ToString(i + 1), true);
+                if (controlButton.Length > 0)
+                {
+                    var button = (Button)controlButton[0];
 
-                var button_DIY = string.Format("buttonSubmit{0}", i + 1);
-                editor.PutString(button_DIY, btn.Text);
+                    var buttonName = string.Format("buttonSubmit{0}", i + 1);
+                    editor.PutString(buttonName, "修改");
+                }
             }
         }
 
         private void WriteRealTimeSetup(Editor editor)
         {
             //保存实时变量数量
-            editor.PutString("Electricity_Num", textBox_Realtime_Number.Text);
+            editor.PutString("RealtimeNum", textBox_Realtime_Number.Text);
 
             //保存实时变量的其他信息
             var total = Convert.ToInt32(textBox_Realtime_Number.Text);
             for (var i = 0; i < total; i++)
             {
-                var txtBox = new TextBox[2]; //用控件数组来定义每一行的TextBox,总共2个TextBox
-                txtBox[0] = (TextBox) panel_Electricity.Controls.Find("txtElectName" + Convert.ToString(i + 1), true)[0];
-                txtBox[1] =
-                    (TextBox) panel_Electricity.Controls.Find("txtElectValue" + Convert.ToString(i + 1), true)[0];
+                var controlName = panel_Electricity.Controls.Find("txtElectName" + Convert.ToString(i + 1), true);
+                if (controlName.Length > 0)
+                {
+                    var txtBox = (TextBox)controlName[0];
 
-                //变量名称
-                var txtNameElect = string.Format("textElectName{0}", i + 1);
-                editor.PutString(txtNameElect, txtBox[0].Text);
+                    var txtNameElect = string.Format("textElectName{0}", i + 1);
+                    editor.PutString(txtNameElect, txtBox.Text);
+                }
 
-                //参数的数值
-                var txtValueElect = string.Format("txtElectValue{0}", i + 1);
-                editor.PutString(txtValueElect, txtBox[1].Text);
+                var controlValue = panel_Electricity.Controls.Find("txtElectValue" + Convert.ToString(i + 1), true);
+                if (controlValue.Length > 0)
+                {
+                    var txtBox = (TextBox) controlValue[0];
+                    var txtValueElect = string.Format("txtElectValue{0}", i + 1);
+                    editor.PutString(txtValueElect, txtBox.Text);
+                }
             }
         }
 
@@ -177,19 +189,25 @@ namespace Freescale_debug
             var totalScope = ScopeNumber;
             for (var i = 0; i < totalScope; i++)
             {
-                CheckBox checkDrawing;
-                checkDrawing = (CheckBox) panel_Scope.Controls.Find("checkBox_Def" + Convert.ToString(i + 1), true)[0];
 
-                TextBox txtBox; //用控件数组来定义每一行的TextBox,总共3个TextBox
-                txtBox = (TextBox) panel_Scope.Controls.Find("txtName" + Convert.ToString(i + 1), true)[0];
+                var controlCheckState = panel_Scope.Controls.Find("checkBox_Def" + Convert.ToString(i + 1), true);
+                if (controlCheckState.Length > 0)
+                {
+                    var checkboxSelect = (CheckBox)controlCheckState[0];
 
-                //状态栏选择情况
-                var checkState = string.Format("SCOPE_CheckState{0}", i + 1);
-                editor.PutBoolean(checkState, checkDrawing.Checked);
+                    var checkState = string.Format("SCOPE_CheckState{0}", i + 1);
+                    editor.PutBoolean(checkState, checkboxSelect.Checked);
+                }
 
-                //自己定义的变量名称
-                var txtNameDIY = string.Format("SCOPE_TextName{0}", i + 1);
-                editor.PutString(txtNameDIY, txtBox.Text);
+
+                var controlName = panel_Scope.Controls.Find("txtName" + Convert.ToString(i + 1), true);
+                if (controlName.Length > 0)
+                {
+                    var txtBox = (TextBox)controlName[0];
+
+                    var txtName = string.Format("SCOPE_TextName{0}", i + 1);
+                    editor.PutString(txtName, txtBox.Text);
+                }
             }
         }
 
@@ -197,7 +215,6 @@ namespace Freescale_debug
         {
             //=================================================================
             var sp = new SharedPreferences(fileName);
-            //记得调用该方法将上述内容一次写入并保存。
             sp.Save(editor);
         }
 
@@ -282,10 +299,24 @@ namespace Freescale_debug
 
         private void ReadRealTimeSetup(SharedPreferences sp)
         {
-            textBox_Realtime_Number.Text = sp.GetString("Electricity_Num", "1");
+            textBox_Realtime_Number.Text = sp.GetString("RealtimeNum", "1");
         }
 
         private void ResetToDefaultSettings()
+        {
+            var editor = new Editor();
+
+            ResetPortSetup();
+            ResetPIDSetup(editor);
+            ResetCustomSetup(editor);
+            ResetRealTimeSetup(editor);
+            ResetScopeSetup(editor);
+
+            WriteToFile(SavefileName, editor);
+            LoadConfig(SavefileName);
+        }
+
+        private void ResetPortSetup()
         {
             //默认波特率
             comboBox_baudrate.SelectedItem = "9600";
@@ -295,6 +326,86 @@ namespace Freescale_debug
             comboBox_databit.SelectedIndex = 0;
             //默认停止位设置为1位
             comboBox_stopbit.SelectedIndex = 0;
+        }
+
+        private void ResetPIDSetup(Editor editor)
+        {
+            editor.PutBoolean("radioButton_carType", false);
+
+            //舵机PID参数
+            editor.PutString("Steer_P", "1.0");
+            editor.PutString("Steer_I", "1.0");
+            editor.PutString("Steer_D", "1.0");
+
+            //电机PID参数
+            editor.PutString("Motor_P", "1.0");
+            editor.PutString("Motor_I", "1.0");
+            editor.PutString("Motor_D", "1.0");
+
+            //直立PID
+            editor.PutString("Stand_P", "1.0");
+            editor.PutString("Stand_I", "1.0");
+            editor.PutString("Stand_D", "1.0");
+
+            //速度PID
+            editor.PutString("Speed_P", "1.0");
+            editor.PutString("Speed_I", "1.0");
+            editor.PutString("Speed_D", "1.0");
+
+            //方向PID
+            editor.PutString("Direction_P", "1.0");
+            editor.PutString("Direction_I", "1.0");
+            editor.PutString("Direction_D", "1.0");
+        }
+
+        private void ResetCustomSetup(Editor editor)
+        {
+            int diyNumber = 1;
+            editor.PutInt32("DIY_Number", diyNumber);
+
+            for (var i = 0; i < diyNumber; i++)
+            {
+                var checkState = string.Format("DIY_CheckState{0}", i + 1);
+                editor.PutBoolean(checkState, false);
+
+                var txtNameDIY = string.Format("DIY_TextName{0}", i + 1);
+                editor.PutString(txtNameDIY, "Names");
+
+                var txtValueDIY = string.Format("DIY_TextValue{0}", i + 1);
+                editor.PutString(txtValueDIY, "1.0");
+
+                var buttonDIY = string.Format("buttonSubmit{0}", i + 1);
+                editor.PutString(buttonDIY, @"修改");
+            }
+        }
+
+        private void ResetRealTimeSetup(Editor editor)
+        {
+            int realtimeNumber = 1;
+            editor.PutInt32("RealtimeNum", realtimeNumber);
+
+            for (var i = 0; i < realtimeNumber; i++)
+            {
+                var txtName = string.Format("textElectName{0}", i + 1);
+                editor.PutString(txtName, "Name");
+
+                var txtValue = string.Format("txtElectValue{0}", i + 1);
+                editor.PutString(txtValue, "0");
+            }
+        }
+
+        private void ResetScopeSetup(Editor editor)
+        {
+            var totalScope = ScopeNumber;
+
+            for (var i = 0; i < totalScope; i++)
+            {
+                var checkState = string.Format("SCOPE_CheckState{0}", i + 1);
+                editor.PutBoolean(checkState, false);
+
+                var txtNameDIY = string.Format("SCOPE_TextName{0}", i + 1);
+                editor.PutString(txtNameDIY, "波形" + (i+1));
+            }
         }
     }
 }
