@@ -1147,16 +1147,27 @@ namespace Freescale_debug
             }
         }
 
-        private void SendMessageAndEnqueue(int father, int child, string messgae)
+        private void button_ModifyPID_Steer_Click(object sender, EventArgs e)
         {
-            messgae = FormPackage(father, child, messgae);
-            mySerialPort.Write(messgae);
+            //舵机PID参数
+            var steer_P = Convert.ToDouble(textBox_Steer_P.Text)*1000;
+            var steer_I = Convert.ToDouble(textBox_Steer_I.Text)*1000;
+            var steer_D = Convert.ToDouble(textBox_Steer_D.Text)*1000;
 
-            var tmpHandle = new GetEchoForm(0, messgae);
-            _queueEchoControl.Enqueue(tmpHandle);
 
-            if (!timer_Send2GetEcho.Enabled)
-                timer_Send2GetEcho.Start();
+            var tmpMessageSteer = "P" + Math.Floor(steer_P).ToString(CultureInfo.InvariantCulture) +
+                                  "I" + Math.Floor(steer_I).ToString(CultureInfo.InvariantCulture) +
+                                  "D" + Math.Floor(steer_D).ToString(CultureInfo.InvariantCulture);
+
+            try
+            {
+                SaveConfig(SavefileName);
+                SendMessageAndEnqueue(1, 1, tmpMessageSteer);
+            }
+            catch (Exception ee)
+            {
+                MessageBox.Show(ee.Message);
+            }
         }
 
         private void button_ModifyPID_Stand_Click(object sender, EventArgs e)
@@ -2311,27 +2322,16 @@ namespace Freescale_debug
             return result;
         }
 
-        private void button_ModifyPID_Steer_Click(object sender, EventArgs e)
+        private void SendMessageAndEnqueue(int father, int child, string messgae)
         {
-            //舵机PID参数
-            var steer_P = Convert.ToDouble(textBox_Steer_P.Text)*1000;
-            var steer_I = Convert.ToDouble(textBox_Steer_I.Text)*1000;
-            var steer_D = Convert.ToDouble(textBox_Steer_D.Text)*1000;
+            messgae = FormPackage(father, child, messgae);
+            mySerialPort.Write(messgae);
 
+            var tmpHandle = new GetEchoForm(0, messgae);
+            _queueEchoControl.Enqueue(tmpHandle);
 
-            var tmpMessageSteer = "P" + Math.Floor(steer_P).ToString(CultureInfo.InvariantCulture) +
-                                  "I" + Math.Floor(steer_I).ToString(CultureInfo.InvariantCulture) +
-                                  "D" + Math.Floor(steer_D).ToString(CultureInfo.InvariantCulture);
-
-            try
-            {
-                SaveConfig(SavefileName);
-                SendMessageAndEnqueue(1, 1, tmpMessageSteer);
-            }
-            catch (Exception ee)
-            {
-                MessageBox.Show(ee.Message);
-            }
+            if (!timer_Send2GetEcho.Enabled)
+                timer_Send2GetEcho.Start();
         }
 
         private Boolean IsIntegerCheck(string text)

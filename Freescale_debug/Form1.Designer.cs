@@ -113,6 +113,7 @@ namespace Freescale_debug
             this.radioButton_camera = new System.Windows.Forms.RadioButton();
             this.radioButton_electromagnetism = new System.Windows.Forms.RadioButton();
             this.tabPage_DIY_Algorithm = new System.Windows.Forms.TabPage();
+            this.button_DIY_ResetNames = new System.Windows.Forms.Button();
             this.button_DIY_NumConfirm = new System.Windows.Forms.Button();
             this.label22 = new System.Windows.Forms.Label();
             this.textBox_DIY_Number = new System.Windows.Forms.TextBox();
@@ -171,7 +172,6 @@ namespace Freescale_debug
             this.timer_Send2GetEcho = new System.Windows.Forms.Timer(this.components);
             this.timer_fresh = new System.Windows.Forms.Timer(this.components);
             this.label29 = new System.Windows.Forms.Label();
-            this.button_DIY_ResetNames = new System.Windows.Forms.Button();
             tabControl1 = new System.Windows.Forms.TabControl();
             tabControl1.SuspendLayout();
             this.tabPage_Serial.SuspendLayout();
@@ -1047,6 +1047,16 @@ namespace Freescale_debug
             this.tabPage_DIY_Algorithm.Text = "自定义算法参数";
             this.tabPage_DIY_Algorithm.UseVisualStyleBackColor = true;
             // 
+            // button_DIY_ResetNames
+            // 
+            this.button_DIY_ResetNames.Location = new System.Drawing.Point(353, 21);
+            this.button_DIY_ResetNames.Name = "button_DIY_ResetNames";
+            this.button_DIY_ResetNames.Size = new System.Drawing.Size(75, 23);
+            this.button_DIY_ResetNames.TabIndex = 37;
+            this.button_DIY_ResetNames.Text = "重置名称";
+            this.button_DIY_ResetNames.UseVisualStyleBackColor = true;
+            this.button_DIY_ResetNames.Click += new System.EventHandler(this.button_DIY_ResetNames_Click);
+            // 
             // button_DIY_NumConfirm
             // 
             this.button_DIY_NumConfirm.Location = new System.Drawing.Point(263, 21);
@@ -1632,16 +1642,6 @@ namespace Freescale_debug
             this.label29.TabIndex = 14;
             this.label29.Text = "Status:";
             // 
-            // button_DIY_ResetNames
-            // 
-            this.button_DIY_ResetNames.Location = new System.Drawing.Point(353, 21);
-            this.button_DIY_ResetNames.Name = "button_DIY_ResetNames";
-            this.button_DIY_ResetNames.Size = new System.Drawing.Size(75, 23);
-            this.button_DIY_ResetNames.TabIndex = 37;
-            this.button_DIY_ResetNames.Text = "重置名称";
-            this.button_DIY_ResetNames.UseVisualStyleBackColor = true;
-            this.button_DIY_ResetNames.Click += new System.EventHandler(this.button_DIY_ResetNames_Click);
-            // 
             // Form1
             // 
             this.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("$this.BackgroundImage")));
@@ -1654,7 +1654,7 @@ namespace Freescale_debug
             this.Controls.Add(this.groupBox_portSetting);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "Form1";
-            this.Text = "飞思卡尔调试平台 V1.2";
+            this.Text = "智能车调试平台 V1.2";
             this.Activated += new System.EventHandler(this.Form1_Activated);
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Form1_FormClosed);
             this.Load += new System.EventHandler(this.Form1_Load);
