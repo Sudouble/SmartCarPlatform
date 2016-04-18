@@ -16,7 +16,13 @@ namespace Freescale_debug
             set { ListZed = value; }
         }
 
-        public ZedGraphPoint zedPoint { get; set; }
+        private ZedGraphPoint zedPoint = new ZedGraphPoint();
+        public ZedGraphPoint ZedPoint
+        {
+            get { return zedPoint; }
+            set { zedPoint = value; }
+        }
+
     }
 
     internal class ZedGraphPoint

@@ -529,7 +529,6 @@ namespace Freescale_debug
                 if (checkDrawing[i].Checked && !timer_fresh.Enabled)
                 {
                     timer_fresh.Start();
-                    break;
                 }
             }
         }
@@ -574,8 +573,8 @@ namespace Freescale_debug
             zedGrpahNames[i].x += 1;
 
             zedGrpahNames[i].listZed.Add(Convert.ToDouble(zedGrpahNames[i].x), value);
-            zedGrpahNames[i].zedPoint.ZedListX.Add(Convert.ToDouble(zedGrpahNames[i].x));
-            zedGrpahNames[i].zedPoint.ZedListY.Add(value);
+            zedGrpahNames[i].ZedPoint.ZedListX.Add(Convert.ToDouble(zedGrpahNames[i].x));
+            zedGrpahNames[i].ZedPoint.ZedListY.Add(value);
 
             if (zedGrpahNames[i].IsSingleWindowShowed)
                 coOb[i].CallEvent(zedGrpahNames[i].x, value);
@@ -1826,10 +1825,10 @@ namespace Freescale_debug
                 }
                 else
                 {
-                    for (var j = 0; j < zedGrpahNames[id].zedPoint.ZedListX.Count; j++)
+                    for (var j = 0; j < zedGrpahNames[id].ZedPoint.ZedListX.Count; j++)
                     {
-                        var x = zedGrpahNames[id].zedPoint.ZedListX.ElementAt(j);
-                        var y = zedGrpahNames[id].zedPoint.ZedListY.ElementAt(j);
+                        var x = zedGrpahNames[id].ZedPoint.ZedListX.ElementAt(j);
+                        var y = zedGrpahNames[id].ZedPoint.ZedListY.ElementAt(j);
                         zedGrpahNames[id].listZed.Add(x, y);
                     }
                 }
@@ -2277,8 +2276,8 @@ namespace Freescale_debug
                                 var x = Convert.ToDouble(xyPoint[j*2]);
                                 var y = Convert.ToDouble(xyPoint[j*2 + 1]);
                                 zedGrpahNames[scopeOrder].listZed.Add(x, y);
-                                zedGrpahNames[scopeOrder].zedPoint.ZedListX.Add(x);
-                                zedGrpahNames[scopeOrder].zedPoint.ZedListY.Add(y);
+                                zedGrpahNames[scopeOrder].ZedPoint.ZedListX.Add(x);
+                                zedGrpahNames[scopeOrder].ZedPoint.ZedListY.Add(y);
                             }
                         }
                     }
