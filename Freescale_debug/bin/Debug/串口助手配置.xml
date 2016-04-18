@@ -200,9 +200,9 @@
   <DIY_CheckState34>True</DIY_CheckState34>
   <SCOPE_CheckState1>True</SCOPE_CheckState1>
   <SCOPE_CheckState2>True</SCOPE_CheckState2>
-  <SCOPE_CheckState3>False</SCOPE_CheckState3>
-  <SCOPE_CheckState4>False</SCOPE_CheckState4>
-  <SCOPE_CheckState5>False</SCOPE_CheckState5>
+  <SCOPE_CheckState3>True</SCOPE_CheckState3>
+  <SCOPE_CheckState4>True</SCOPE_CheckState4>
+  <SCOPE_CheckState5>True</SCOPE_CheckState5>
   <SCOPE_CheckState6>False</SCOPE_CheckState6>
   <SCOPE_CheckState7>False</SCOPE_CheckState7>
   <SCOPE_CheckState8>False</SCOPE_CheckState8>

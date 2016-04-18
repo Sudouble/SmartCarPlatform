@@ -274,7 +274,7 @@ namespace Freescale_debug
                         {
                             if (InvokeRequired)
                             {
-                                Invoke(new DoWorkUiThreadDelegate(UnPakageReceived), RecievedStringAdd, _recieveBuff);
+                                Invoke(new DoWorkUiThreadDelegate(UnPakegeReceived), RecievedStringAdd, _recieveBuff);
                             }
                             RecievedStringAdd = null;
                             _recieveBuff.Clear();
@@ -344,22 +344,29 @@ namespace Freescale_debug
             }
         }
 
-        private void UnPakageReceived(string recvStr, List<int> recBuff)
+        private void UnPakegeReceived(string recvStr, List<int> recBuff)
         {
             // 1 2 3    45 6 7               8
             //#|1|3.31|0||1|1|P1200I2100D3310|$
-            if (ReceiveValidateCheck(recvStr))
+            try
             {
-                var headCheck = recvStr.IndexOf("#|", StringComparison.Ordinal);
-                var endCheck = recvStr.LastIndexOf("|$", StringComparison.Ordinal);
-                var messagePack = recvStr.Substring(headCheck, endCheck - headCheck + 2);
-
-                var splittedMessage = messagePack.Split('|');
-
-                if (SingleMessageValidateCheck(splittedMessage))
+                if (ReceiveValidateCheck(recvStr))
                 {
-                    DeliveryReceivedToControls(splittedMessage, messagePack, recBuff);
+                    var headCheck = recvStr.IndexOf("#|", StringComparison.Ordinal);
+                    var endCheck = recvStr.LastIndexOf("|$", StringComparison.Ordinal);
+                    var messagePack = recvStr.Substring(headCheck, endCheck - headCheck + 2);
+
+                    var splittedMessage = messagePack.Split('|');
+
+                    if (SingleMessageValidateCheck(splittedMessage))
+                    {
+                        DeliveryReceivedToControls(splittedMessage, messagePack, recBuff);
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                LogHelper.WriteLog(typeof(Form1), ex);
             }
         }
 
