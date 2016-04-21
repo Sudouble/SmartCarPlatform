@@ -1171,7 +1171,7 @@ namespace Freescale_debug
             this.tabPage_Camera.Padding = new System.Windows.Forms.Padding(3);
             this.tabPage_Camera.Size = new System.Drawing.Size(736, 539);
             this.tabPage_Camera.TabIndex = 2;
-            this.tabPage_Camera.Text = "摄像头图像（无）";
+            this.tabPage_Camera.Text = "摄像头图像";
             this.tabPage_Camera.UseVisualStyleBackColor = true;
             // 
             // checkBox_Camera_ONOFF
@@ -1229,9 +1229,9 @@ namespace Freescale_debug
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.pictureBox_CameraActual.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pictureBox_CameraActual.Location = new System.Drawing.Point(145, 129);
+            this.pictureBox_CameraActual.Location = new System.Drawing.Point(149, 45);
             this.pictureBox_CameraActual.Name = "pictureBox_CameraActual";
-            this.pictureBox_CameraActual.Size = new System.Drawing.Size(527, 273);
+            this.pictureBox_CameraActual.Size = new System.Drawing.Size(560, 420);
             this.pictureBox_CameraActual.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pictureBox_CameraActual.TabIndex = 0;
             this.pictureBox_CameraActual.TabStop = false;
@@ -1658,6 +1658,7 @@ namespace Freescale_debug
             this.Activated += new System.EventHandler(this.Form1_Activated);
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Form1_FormClosed);
             this.Load += new System.EventHandler(this.Form1_Load);
+            this.SizeChanged += new System.EventHandler(this.Form1_SizeChanged);
             tabControl1.ResumeLayout(false);
             this.tabPage_Serial.ResumeLayout(false);
             this.groupBox2.ResumeLayout(false);

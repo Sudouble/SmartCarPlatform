@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Linq;
@@ -9,14 +10,18 @@ namespace Freescale_debug
 {
     internal class CameraAlgorithm
     {
+        private readonly List<int> originBuff;
+        private  List<List<int>> cameraBuff = new List<List<int>>();
+
         private string cameraStr = "";
         private int height;
         private readonly string originCameraStr = "";
         private int width;
 
-        public CameraAlgorithm(string orginStr)
+        public CameraAlgorithm(string orginStr, List<int> recvBuff)
         {
             originCameraStr = orginStr;
+            originBuff = recvBuff;
         }
 
         public void ApartMessage()
@@ -39,13 +44,53 @@ namespace Freescale_debug
             height = heightCamera;
             width = widthCamera;
             cameraStr = cameraData;
+
+            //找到recvBuff中的相应段
+            for (var i = 0; i < originBuff.Count - 12; i++)
+            {
+                if (originBuff.ElementAt(i) == '#' &&
+                    originBuff.ElementAt(i + 1) == '|' &&
+                    originBuff.ElementAt(i + 2) == '1' &&
+                    originBuff.ElementAt(i + 3) == '|' &&
+                    originBuff.ElementAt(i + 5) == '|' &&
+                    originBuff.ElementAt(i + 6) == '(' &&
+                    originBuff.ElementAt(i + 7) == '8' &&
+                    originBuff.ElementAt(i + 8) == '0' &&
+                    originBuff.ElementAt(i + 9) == '+' &&
+                    originBuff.ElementAt(i + 10) == '6' &&
+                    originBuff.ElementAt(i + 11) == '0' &&
+                    originBuff.ElementAt(i + 12) == ')')
+                {
+                    List<int> cameraBuffOneLine = new List<int>();
+                    for (var j = i + 13; j < width*height/8 + i + 13; j++)
+                    {
+                        cameraBuffOneLine.Add(originBuff[j]);
+                    }
+
+                    List<int> cameraBuffColumn = new List<int>();
+                    for (int j = 0; j < width*height/8; j++)
+                    {
+                        int currentBuff = cameraBuffOneLine.ElementAt(j);
+                        for (int k = 7; k >= 0; k--)
+                            cameraBuffColumn.Add(currentBuff>>k & 0x01);
+                        if ((j+1)%10 == 0)
+                        {
+                            cameraBuff.Add(cameraBuffColumn);
+                            cameraBuffColumn = new List<int>();
+                        }
+                    }
+
+                    break;
+                }
+            }
         }
 
         public void DrawCameraPicture(PictureBox pictureBoxCamera)
         {
             if (isValidData())
             {
-                var bitmap = new Bitmap(width, height);
+                int amplify = 5;
+                var bitmap = new Bitmap(width*amplify, height*amplify);
 
                 var bitmapData =
                     bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height),
@@ -65,12 +110,12 @@ namespace Freescale_debug
 
                     for (var x = 0; x < widthInBytes; x = x + bytesPerPixel)
                     {
-                        int grey = Convert.ToInt16(cameraStr.ElementAt(Convert.ToInt16(y + x/4)));
+                        int grey = cameraBuff.ElementAt(y/amplify).ElementAt(x/4/amplify);
 
                         // calculate new pixel value
-                        pixels[currentLine + x] = (byte) grey;
-                        pixels[currentLine + x + 1] = (byte) grey;
-                        pixels[currentLine + x + 2] = (byte) grey;
+                        pixels[currentLine + x] = (byte)(grey == 1 ? 0 : 255);
+                        pixels[currentLine + x + 1] = (byte)(grey == 1 ? 0 : 255);
+                        pixels[currentLine + x + 2] = (byte)(grey == 1 ? 0 : 255);
                         pixels[currentLine + x + 3] = 255;
                     }
                 }
@@ -84,7 +129,7 @@ namespace Freescale_debug
 
         private bool isValidData()
         {
-            if (cameraStr.Length == width*height)
+            if (cameraBuff.Count*cameraBuff.First().Count == width*height)
                 return true;
             return false;
         }

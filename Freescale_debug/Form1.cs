@@ -121,6 +121,15 @@ namespace Freescale_debug
             SaveConfig(SavefileName);
         }
 
+        private void Form1_SizeChanged(object sender, EventArgs e)
+        {
+            if (WindowState == FormWindowState.Normal ||
+                WindowState == FormWindowState.Maximized)
+            {
+                pictureBox_CameraActual.Height = pictureBox_CameraActual.Width / 3 * 4;
+            }
+        }
+
         #endregion
 
         #region 串口设置相关 1
@@ -412,7 +421,7 @@ namespace Freescale_debug
                 if (father == 1 && checkBox_Camera_ONOFF.Checked)
                     //摄像头数据
                 {
-                    var cameraAlgorithm = new CameraAlgorithm(neededStr);
+                    var cameraAlgorithm = new CameraAlgorithm(neededStr, recBuff);
 
                     cameraAlgorithm.ApartMessage();
 
@@ -2365,5 +2374,7 @@ namespace Freescale_debug
         }
 
         #endregion
+
+        
     }
 }

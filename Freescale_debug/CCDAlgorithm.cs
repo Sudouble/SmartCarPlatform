@@ -26,8 +26,8 @@ namespace Freescale_debug
 
         public void ApartMessage()
         {
-            ApartMessageList();
             ApartMessageString();
+            ApartMessageList();
         }
 
         private void ApartMessageList()
@@ -42,7 +42,7 @@ namespace Freescale_debug
                     originCCDBuff.ElementAt(i + 5) == '|' &&
                     originCCDBuff.ElementAt(i + 6) == '(')
                 {
-                    for (var j = i + 11; j < ccdStr.Length + i + 11; j++)
+                    for (var j = i + 11; j < ccdLength + i + 11; j++)
                     {
                         CCDBuff.Add(originCCDBuff[j]);
                     }
