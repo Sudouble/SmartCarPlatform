@@ -128,18 +128,18 @@ namespace Freescale_debug
             this.checkBox_Camera_ONOFF = new System.Windows.Forms.CheckBox();
             this.label25 = new System.Windows.Forms.Label();
             this.label24 = new System.Windows.Forms.Label();
-            this.textBox2 = new System.Windows.Forms.TextBox();
-            this.textBox1 = new System.Windows.Forms.TextBox();
+            this.textBoxCameraHeight = new System.Windows.Forms.TextBox();
+            this.textBoxCameraWidth = new System.Windows.Forms.TextBox();
             this.numericUpDown1 = new System.Windows.Forms.NumericUpDown();
             this.pictureBox_CameraActual = new System.Windows.Forms.PictureBox();
             this.tabPage_CCD = new System.Windows.Forms.TabPage();
             this.label32 = new System.Windows.Forms.Label();
             this.pictureBox_CCD3 = new System.Windows.Forms.PictureBox();
-            this.label31 = new System.Windows.Forms.Label();
+            this.labelPathName = new System.Windows.Forms.Label();
             this.label30 = new System.Windows.Forms.Label();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.checkBox_CCD_ONOFF = new System.Windows.Forms.CheckBox();
-            this.comboBox1 = new System.Windows.Forms.ComboBox();
+            this.comboBoxCCDPath = new System.Windows.Forms.ComboBox();
             this.label_CCD_Width = new System.Windows.Forms.Label();
             this.pictureBox_CCD2 = new System.Windows.Forms.PictureBox();
             this.label27 = new System.Windows.Forms.Label();
@@ -172,6 +172,7 @@ namespace Freescale_debug
             this.timer_Send2GetEcho = new System.Windows.Forms.Timer(this.components);
             this.timer_fresh = new System.Windows.Forms.Timer(this.components);
             this.label29 = new System.Windows.Forms.Label();
+            this.label31 = new System.Windows.Forms.Label();
             tabControl1 = new System.Windows.Forms.TabControl();
             tabControl1.SuspendLayout();
             this.tabPage_Serial.SuspendLayout();
@@ -516,7 +517,7 @@ namespace Freescale_debug
             this.groupBox_BalanceCar.Controls.Add(this.groupBox_Balance_Direction);
             this.groupBox_BalanceCar.Controls.Add(this.groupBox_Balance_Speed);
             this.groupBox_BalanceCar.Controls.Add(this.groupBox_Balance_Stand);
-            this.groupBox_BalanceCar.Location = new System.Drawing.Point(33, 197);
+            this.groupBox_BalanceCar.Location = new System.Drawing.Point(332, 17);
             this.groupBox_BalanceCar.Name = "groupBox_BalanceCar";
             this.groupBox_BalanceCar.Size = new System.Drawing.Size(563, 227);
             this.groupBox_BalanceCar.TabIndex = 8;
@@ -1162,8 +1163,8 @@ namespace Freescale_debug
             this.tabPage_Camera.Controls.Add(this.checkBox_Camera_ONOFF);
             this.tabPage_Camera.Controls.Add(this.label25);
             this.tabPage_Camera.Controls.Add(this.label24);
-            this.tabPage_Camera.Controls.Add(this.textBox2);
-            this.tabPage_Camera.Controls.Add(this.textBox1);
+            this.tabPage_Camera.Controls.Add(this.textBoxCameraHeight);
+            this.tabPage_Camera.Controls.Add(this.textBoxCameraWidth);
             this.tabPage_Camera.Controls.Add(this.numericUpDown1);
             this.tabPage_Camera.Controls.Add(this.pictureBox_CameraActual);
             this.tabPage_Camera.Location = new System.Drawing.Point(4, 22);
@@ -1202,19 +1203,19 @@ namespace Freescale_debug
             this.label24.TabIndex = 4;
             this.label24.Text = "宽：";
             // 
-            // textBox2
+            // textBoxCameraHeight
             // 
-            this.textBox2.Location = new System.Drawing.Point(72, 105);
-            this.textBox2.Name = "textBox2";
-            this.textBox2.Size = new System.Drawing.Size(54, 21);
-            this.textBox2.TabIndex = 3;
+            this.textBoxCameraHeight.Location = new System.Drawing.Point(72, 105);
+            this.textBoxCameraHeight.Name = "textBoxCameraHeight";
+            this.textBoxCameraHeight.Size = new System.Drawing.Size(54, 21);
+            this.textBoxCameraHeight.TabIndex = 3;
             // 
-            // textBox1
+            // textBoxCameraWidth
             // 
-            this.textBox1.Location = new System.Drawing.Point(72, 67);
-            this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(54, 21);
-            this.textBox1.TabIndex = 2;
+            this.textBoxCameraWidth.Location = new System.Drawing.Point(72, 67);
+            this.textBoxCameraWidth.Name = "textBoxCameraWidth";
+            this.textBoxCameraWidth.Size = new System.Drawing.Size(54, 21);
+            this.textBoxCameraWidth.TabIndex = 2;
             // 
             // numericUpDown1
             // 
@@ -1240,7 +1241,7 @@ namespace Freescale_debug
             // 
             this.tabPage_CCD.Controls.Add(this.label32);
             this.tabPage_CCD.Controls.Add(this.pictureBox_CCD3);
-            this.tabPage_CCD.Controls.Add(this.label31);
+            this.tabPage_CCD.Controls.Add(this.labelPathName);
             this.tabPage_CCD.Controls.Add(this.label30);
             this.tabPage_CCD.Controls.Add(this.groupBox3);
             this.tabPage_CCD.Controls.Add(this.pictureBox_CCD2);
@@ -1276,14 +1277,14 @@ namespace Freescale_debug
             this.pictureBox_CCD3.TabIndex = 10;
             this.pictureBox_CCD3.TabStop = false;
             // 
-            // label31
+            // labelPathName
             // 
-            this.label31.AutoSize = true;
-            this.label31.Location = new System.Drawing.Point(157, 318);
-            this.label31.Name = "label31";
-            this.label31.Size = new System.Drawing.Size(71, 12);
-            this.label31.TabIndex = 9;
-            this.label31.Text = "图像1路径：";
+            this.labelPathName.AutoSize = true;
+            this.labelPathName.Location = new System.Drawing.Point(163, 319);
+            this.labelPathName.Name = "labelPathName";
+            this.labelPathName.Size = new System.Drawing.Size(65, 12);
+            this.labelPathName.TabIndex = 9;
+            this.labelPathName.Text = "图像路径：";
             // 
             // label30
             // 
@@ -1296,12 +1297,13 @@ namespace Freescale_debug
             // 
             // groupBox3
             // 
+            this.groupBox3.Controls.Add(this.label31);
             this.groupBox3.Controls.Add(this.checkBox_CCD_ONOFF);
-            this.groupBox3.Controls.Add(this.comboBox1);
+            this.groupBox3.Controls.Add(this.comboBoxCCDPath);
             this.groupBox3.Controls.Add(this.label_CCD_Width);
             this.groupBox3.Location = new System.Drawing.Point(10, 11);
             this.groupBox3.Name = "groupBox3";
-            this.groupBox3.Size = new System.Drawing.Size(118, 205);
+            this.groupBox3.Size = new System.Drawing.Size(165, 205);
             this.groupBox3.TabIndex = 7;
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "groupBox3";
@@ -1316,22 +1318,23 @@ namespace Freescale_debug
             this.checkBox_CCD_ONOFF.Text = "CCD显示开关";
             this.checkBox_CCD_ONOFF.UseVisualStyleBackColor = true;
             // 
-            // comboBox1
+            // comboBoxCCDPath
             // 
-            this.comboBox1.FormattingEnabled = true;
-            this.comboBox1.Items.AddRange(new object[] {
+            this.comboBoxCCDPath.FormattingEnabled = true;
+            this.comboBoxCCDPath.Items.AddRange(new object[] {
             "1",
             "2",
             "3"});
-            this.comboBox1.Location = new System.Drawing.Point(22, 52);
-            this.comboBox1.Name = "comboBox1";
-            this.comboBox1.Size = new System.Drawing.Size(67, 20);
-            this.comboBox1.TabIndex = 2;
+            this.comboBoxCCDPath.Location = new System.Drawing.Point(89, 80);
+            this.comboBoxCCDPath.Name = "comboBoxCCDPath";
+            this.comboBoxCCDPath.Size = new System.Drawing.Size(51, 20);
+            this.comboBoxCCDPath.TabIndex = 2;
+            this.comboBoxCCDPath.SelectedIndexChanged += new System.EventHandler(this.comboBoxCCDPath_SelectedIndexChanged);
             // 
             // label_CCD_Width
             // 
             this.label_CCD_Width.AutoSize = true;
-            this.label_CCD_Width.Location = new System.Drawing.Point(20, 89);
+            this.label_CCD_Width.Location = new System.Drawing.Point(20, 55);
             this.label_CCD_Width.Name = "label_CCD_Width";
             this.label_CCD_Width.Size = new System.Drawing.Size(83, 12);
             this.label_CCD_Width.TabIndex = 3;
@@ -1642,6 +1645,15 @@ namespace Freescale_debug
             this.label29.TabIndex = 14;
             this.label29.Text = "Status:";
             // 
+            // label31
+            // 
+            this.label31.AutoSize = true;
+            this.label31.Location = new System.Drawing.Point(20, 83);
+            this.label31.Name = "label31";
+            this.label31.Size = new System.Drawing.Size(65, 12);
+            this.label31.TabIndex = 5;
+            this.label31.Text = "选择路径：";
+            // 
             // Form1
             // 
             this.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("$this.BackgroundImage")));
@@ -1809,13 +1821,13 @@ namespace Freescale_debug
         private Label label23;
         private TextBox textBox_Realtime_Number;
         private Panel panel_Electricity;
-        private ComboBox comboBox1;
+        private ComboBox comboBoxCCDPath;
         private ZedGraphControl zedGraph_local;
         private Panel panel_Scope;
         private Label label25;
         private Label label24;
-        private TextBox textBox2;
-        private TextBox textBox1;
+        private TextBox textBoxCameraHeight;
+        private TextBox textBoxCameraWidth;
         private NumericUpDown numericUpDown1;
         private Label label_CCD_Width;
         private Button button_History;
@@ -1842,10 +1854,11 @@ namespace Freescale_debug
         private PictureBox pictureBox_CCD2;
         private Label label30;
         private GroupBox groupBox3;
-        private Label label31;
+        private Label labelPathName;
         private Label label32;
         private PictureBox pictureBox_CCD3;
         private Button button_DIY_ResetNames;
+        private Label label31;
     }
 }
 

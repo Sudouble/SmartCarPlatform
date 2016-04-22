@@ -1,15 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<!--配置文件为软件自动生成，非软件的编写者不要尝试修改。by leomon 2016/4/21-->
+<!--配置文件为软件自动生成，非软件的编写者不要尝试修改。by leomon 2016/4/22-->
 <configuration firstTimeRunning="false">
-  <Stand_P>1.0</Stand_P>
-  <Stand_I>1.0</Stand_I>
-  <Stand_D>1.0</Stand_D>
-  <Speed_P>1.0</Speed_P>
-  <Speed_I>1.0</Speed_I>
-  <Speed_D>1.0</Speed_D>
-  <Direction_P>1.0</Direction_P>
-  <Direction_I>1.0</Direction_I>
-  <Direction_D>1.0</Direction_D>
+  <Steer_P>2.1</Steer_P>
+  <Steer_I>1.9</Steer_I>
+  <Steer_D>33</Steer_D>
+  <Motor_P>1.0</Motor_P>
+  <Motor_I>1.0</Motor_I>
+  <Motor_D>1.0</Motor_D>
   <RealtimeNum>20</RealtimeNum>
   <textElectName1>实时变量1</textElectName1>
   <txtElectValue1 />
@@ -51,14 +48,14 @@
   <txtElectValue19 />
   <textElectName20>实时变量20</textElectName20>
   <txtElectValue20 />
-  <DIY_TextName1>p</DIY_TextName1>
-  <DIY_TextValue1>1.0</DIY_TextValue1>
+  <DIY_TextName1>Name1</DIY_TextName1>
+  <DIY_TextValue1>10</DIY_TextValue1>
   <buttonSubmit1>修改</buttonSubmit1>
   <DIY_TextName2>Name2</DIY_TextName2>
-  <DIY_TextValue2>1.0</DIY_TextValue2>
+  <DIY_TextValue2>100</DIY_TextValue2>
   <buttonSubmit2>修改</buttonSubmit2>
   <DIY_TextName3>Name3</DIY_TextName3>
-  <DIY_TextValue3>1.0</DIY_TextValue3>
+  <DIY_TextValue3>10.2</DIY_TextValue3>
   <buttonSubmit3>修改</buttonSubmit3>
   <DIY_TextName4>Name4</DIY_TextName4>
   <DIY_TextValue4>1.0</DIY_TextValue4>
@@ -81,78 +78,6 @@
   <DIY_TextName10>Name10</DIY_TextName10>
   <DIY_TextValue10>1.0</DIY_TextValue10>
   <buttonSubmit10>修改</buttonSubmit10>
-  <DIY_TextName11>Name11</DIY_TextName11>
-  <DIY_TextValue11>1.0</DIY_TextValue11>
-  <buttonSubmit11>修改</buttonSubmit11>
-  <DIY_TextName12>Name12</DIY_TextName12>
-  <DIY_TextValue12>1.0</DIY_TextValue12>
-  <buttonSubmit12>修改</buttonSubmit12>
-  <DIY_TextName13>Name13</DIY_TextName13>
-  <DIY_TextValue13>1.0</DIY_TextValue13>
-  <buttonSubmit13>修改</buttonSubmit13>
-  <DIY_TextName14>Name14</DIY_TextName14>
-  <DIY_TextValue14>1.0</DIY_TextValue14>
-  <buttonSubmit14>修改</buttonSubmit14>
-  <DIY_TextName15>Name15</DIY_TextName15>
-  <DIY_TextValue15>1.0</DIY_TextValue15>
-  <buttonSubmit15>修改</buttonSubmit15>
-  <DIY_TextName16>Name16</DIY_TextName16>
-  <DIY_TextValue16>1.0</DIY_TextValue16>
-  <buttonSubmit16>修改</buttonSubmit16>
-  <DIY_TextName17>Name17</DIY_TextName17>
-  <DIY_TextValue17>1.0</DIY_TextValue17>
-  <buttonSubmit17>修改</buttonSubmit17>
-  <DIY_TextName18>Name18</DIY_TextName18>
-  <DIY_TextValue18>1.0</DIY_TextValue18>
-  <buttonSubmit18>修改</buttonSubmit18>
-  <DIY_TextName19>Name19</DIY_TextName19>
-  <DIY_TextValue19>1.0</DIY_TextValue19>
-  <buttonSubmit19>修改</buttonSubmit19>
-  <DIY_TextName20>Name20</DIY_TextName20>
-  <DIY_TextValue20>1.0</DIY_TextValue20>
-  <buttonSubmit20>修改</buttonSubmit20>
-  <DIY_TextName21>数据</DIY_TextName21>
-  <DIY_TextValue21>1.0</DIY_TextValue21>
-  <buttonSubmit21>修改</buttonSubmit21>
-  <DIY_TextName22>数据</DIY_TextName22>
-  <DIY_TextValue22>1.0</DIY_TextValue22>
-  <buttonSubmit22>修改</buttonSubmit22>
-  <DIY_TextName23>数据</DIY_TextName23>
-  <DIY_TextValue23>1.0</DIY_TextValue23>
-  <buttonSubmit23>修改</buttonSubmit23>
-  <DIY_TextName24>数据</DIY_TextName24>
-  <DIY_TextValue24>1.0</DIY_TextValue24>
-  <buttonSubmit24>修改</buttonSubmit24>
-  <DIY_TextName25>数据</DIY_TextName25>
-  <DIY_TextValue25>1.0</DIY_TextValue25>
-  <buttonSubmit25>修改</buttonSubmit25>
-  <DIY_TextName26>数据</DIY_TextName26>
-  <DIY_TextValue26>1.0</DIY_TextValue26>
-  <buttonSubmit26>修改</buttonSubmit26>
-  <DIY_TextName27>数据</DIY_TextName27>
-  <DIY_TextValue27>1.0</DIY_TextValue27>
-  <buttonSubmit27>修改</buttonSubmit27>
-  <DIY_TextName28>数据</DIY_TextName28>
-  <DIY_TextValue28>1.0</DIY_TextValue28>
-  <buttonSubmit28>修改</buttonSubmit28>
-  <DIY_TextName29>数据</DIY_TextName29>
-  <DIY_TextValue29>1.0</DIY_TextValue29>
-  <buttonSubmit29>修改</buttonSubmit29>
-  <DIY_TextName30>数据</DIY_TextName30>
-  <DIY_TextValue30>1.0</DIY_TextValue30>
-  <buttonSubmit30>修改</buttonSubmit30>
-  <DIY_TextName31>数据</DIY_TextName31>
-  <DIY_TextValue31>1.0</DIY_TextValue31>
-  <buttonSubmit31>修改</buttonSubmit31>
-  <DIY_TextName32>数据</DIY_TextName32>
-  <DIY_TextValue32>1.0</DIY_TextValue32>
-  <buttonSubmit32>修改</buttonSubmit32>
-  <DIY_TextName33>数据</DIY_TextName33>
-  <DIY_TextValue33>1.0</DIY_TextValue33>
-  <buttonSubmit33>修改</buttonSubmit33>
-  <DIY_TextName34>数据</DIY_TextName34>
-  <DIY_TextValue34>1.0</DIY_TextValue34>
-  <buttonSubmit34>修改</buttonSubmit34>
   <SCOPE_TextName1>角度</SCOPE_TextName1>
   <SCOPE_TextName2>66</SCOPE_TextName2>
   <SCOPE_TextName3>JIAO_PWM</SCOPE_TextName3>
@@ -163,41 +88,17 @@
   <SCOPE_TextName8>cnt_black</SCOPE_TextName8>
   <acceptChar>False</acceptChar>
   <showInfo>True</showInfo>
-  <radioButton_carType>False</radioButton_carType>
+  <radioButton_carType>True</radioButton_carType>
   <DIY_CheckState1>True</DIY_CheckState1>
   <DIY_CheckState2>True</DIY_CheckState2>
   <DIY_CheckState3>True</DIY_CheckState3>
-  <DIY_CheckState4>True</DIY_CheckState4>
+  <DIY_CheckState4>False</DIY_CheckState4>
   <DIY_CheckState5>False</DIY_CheckState5>
   <DIY_CheckState6>False</DIY_CheckState6>
   <DIY_CheckState7>False</DIY_CheckState7>
   <DIY_CheckState8>False</DIY_CheckState8>
   <DIY_CheckState9>False</DIY_CheckState9>
   <DIY_CheckState10>False</DIY_CheckState10>
-  <DIY_CheckState11>False</DIY_CheckState11>
-  <DIY_CheckState12>False</DIY_CheckState12>
-  <DIY_CheckState13>False</DIY_CheckState13>
-  <DIY_CheckState14>False</DIY_CheckState14>
-  <DIY_CheckState15>False</DIY_CheckState15>
-  <DIY_CheckState16>False</DIY_CheckState16>
-  <DIY_CheckState17>False</DIY_CheckState17>
-  <DIY_CheckState18>False</DIY_CheckState18>
-  <DIY_CheckState19>True</DIY_CheckState19>
-  <DIY_CheckState20>True</DIY_CheckState20>
-  <DIY_CheckState21>True</DIY_CheckState21>
-  <DIY_CheckState22>True</DIY_CheckState22>
-  <DIY_CheckState23>True</DIY_CheckState23>
-  <DIY_CheckState24>True</DIY_CheckState24>
-  <DIY_CheckState25>True</DIY_CheckState25>
-  <DIY_CheckState26>True</DIY_CheckState26>
-  <DIY_CheckState27>True</DIY_CheckState27>
-  <DIY_CheckState28>True</DIY_CheckState28>
-  <DIY_CheckState29>True</DIY_CheckState29>
-  <DIY_CheckState30>True</DIY_CheckState30>
-  <DIY_CheckState31>True</DIY_CheckState31>
-  <DIY_CheckState32>True</DIY_CheckState32>
-  <DIY_CheckState33>True</DIY_CheckState33>
-  <DIY_CheckState34>True</DIY_CheckState34>
   <SCOPE_CheckState1>True</SCOPE_CheckState1>
   <SCOPE_CheckState2>True</SCOPE_CheckState2>
   <SCOPE_CheckState3>True</SCOPE_CheckState3>
@@ -206,11 +107,12 @@
   <SCOPE_CheckState6>False</SCOPE_CheckState6>
   <SCOPE_CheckState7>False</SCOPE_CheckState7>
   <SCOPE_CheckState8>False</SCOPE_CheckState8>
-  <selectedPort>1</selectedPort>
+  <selectedPort>0</selectedPort>
   <baudRate>11</baudRate>
   <parity>0</parity>
   <dataBits>0</dataBits>
   <stopBits>0</stopBits>
   <intervalTime>500</intervalTime>
-  <DIY_Number>34</DIY_Number>
+  <DIY_Number>10</DIY_Number>
+  <comboboxCCDPath>2</comboboxCCDPath>
 </configuration>

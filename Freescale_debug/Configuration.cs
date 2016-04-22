@@ -16,6 +16,7 @@ namespace Freescale_debug
             WriteRealTimeSetup(editor);
             WriteDiySetup(editor);
             WriteScopeSetup(editor);
+            WriteOthers(editor);
 
             WriteToFile(fileName, editor);
         }
@@ -29,6 +30,7 @@ namespace Freescale_debug
                 ReadPIDSetup(sp);
                 ReadDIYNumberSetup(sp);
                 ReadRealTimeSetup(sp);
+                ReadOthers(sp);
 
                 textBox_receive.Clear();
             }
@@ -211,6 +213,11 @@ namespace Freescale_debug
             }
         }
 
+        private void WriteOthers(Editor editor)
+        {
+            editor.PutInt32("comboboxCCDPath", comboBoxCCDPath.SelectedIndex);
+        }
+
         private static void WriteToFile(string fileName, Editor editor)
         {
             //=================================================================
@@ -300,6 +307,11 @@ namespace Freescale_debug
         private void ReadRealTimeSetup(SharedPreferences sp)
         {
             textBox_Realtime_Number.Text = sp.GetString("RealtimeNum", "1");
+        }
+
+        private void ReadOthers(SharedPreferences sp)
+        {
+            comboBoxCCDPath.SelectedIndex = sp.GetInt32("comboboxCCDPath", 0);
         }
 
         private void ResetToDefaultSettings()

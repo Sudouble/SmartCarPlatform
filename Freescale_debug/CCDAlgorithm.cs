@@ -10,12 +10,12 @@ namespace Freescale_debug
 {
     internal class CCDAlgorithm
     {
-        private readonly List<int> CCDBuff = new List<int>();
+        private List<int> CCDBuff = new List<int>();
         private int ccdLength;
 
         private string ccdStr = "";
         private int height = 0;
-        private readonly List<int> originCCDBuff = new List<int>();
+        private readonly List<int> originCCDBuff;
         private readonly string originCCDStr = "";
 
         public CCDAlgorithm(string orginStr, List<int> recvBuff)
@@ -28,6 +28,22 @@ namespace Freescale_debug
         {
             ApartMessageString();
             ApartMessageList();
+        }
+
+        private void ApartMessageString()
+        {
+            var firstRightIndex = originCCDStr.IndexOf('(');
+            var indexEnd = originCCDStr.LastIndexOf('|');
+            var ccdMessgageAdd = originCCDStr.Substring(firstRightIndex,
+                indexEnd - firstRightIndex);
+
+            var leftIndex = ccdMessgageAdd.IndexOf('(');
+            var rightIndex = ccdMessgageAdd.IndexOf(')');
+            var length = Convert.ToInt16(ccdMessgageAdd.Substring(leftIndex + 1, rightIndex - leftIndex - 1));
+            var ccdData = ccdMessgageAdd.Substring(rightIndex + 1);
+
+            ccdStr = ccdData;
+            ccdLength = length;
         }
 
         private void ApartMessageList()
@@ -49,22 +65,6 @@ namespace Freescale_debug
                     break;
                 }
             }
-        }
-
-        private void ApartMessageString()
-        {
-            var firstRightIndex = originCCDStr.IndexOf('(');
-            var indexEnd = originCCDStr.LastIndexOf('|');
-            var ccdMessgageAdd = originCCDStr.Substring(firstRightIndex,
-                indexEnd - firstRightIndex);
-
-            var leftIndex = ccdMessgageAdd.IndexOf('(');
-            var rightIndex = ccdMessgageAdd.IndexOf(')');
-            var length = Convert.ToInt16(ccdMessgageAdd.Substring(leftIndex + 1, rightIndex - leftIndex - 1));
-            var ccdData = ccdMessgageAdd.Substring(rightIndex + 1);
-
-            ccdStr = ccdData;
-            ccdLength = length;
         }
 
         public int GetCCDLength()
