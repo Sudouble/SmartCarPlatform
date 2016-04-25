@@ -1,0 +1,13 @@
+
+ 
+记录时间：2016-04-23 22:49:01,531 
+线程ID:[1] 
+日志级别：  ERROR 
+出错类：Freescale_debug.Form1 property: [(null)] - 
+错误描述：Error
+ 
+System.FormatException: 输入字符串的格式不正确。
+   在 System.Number.ParseDouble(String value, NumberStyles options, NumberFormatInfo numfmt)
+   在 System.Convert.ToDouble(String value)
+   在 Freescale_debug.Form1.DeliveryReceivedToControls(String[] splittedMessage, String neededStr, List`1 recBuff) 位置 f:\Project_Compotition\6.MyFreescal_10th\New_for_platform\FreescalePlatform\Freescale_debug\Form1.cs:行号 477
+   在 Freescale_debug.Form1.UnPakegeReceived(String recvStr, List`1 recBuff) 位置 f:\Project_Compotition\6.MyFreescal_10th\New_for_platform\FreescalePlatform\Freescale_debug\Form1.cs:行号 378

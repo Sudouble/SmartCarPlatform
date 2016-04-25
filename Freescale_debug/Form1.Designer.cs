@@ -138,6 +138,7 @@ namespace Freescale_debug
             this.labelPathName = new System.Windows.Forms.Label();
             this.label30 = new System.Windows.Forms.Label();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
+            this.label31 = new System.Windows.Forms.Label();
             this.checkBox_CCD_ONOFF = new System.Windows.Forms.CheckBox();
             this.comboBoxCCDPath = new System.Windows.Forms.ComboBox();
             this.label_CCD_Width = new System.Windows.Forms.Label();
@@ -172,7 +173,6 @@ namespace Freescale_debug
             this.timer_Send2GetEcho = new System.Windows.Forms.Timer(this.components);
             this.timer_fresh = new System.Windows.Forms.Timer(this.components);
             this.label29 = new System.Windows.Forms.Label();
-            this.label31 = new System.Windows.Forms.Label();
             tabControl1 = new System.Windows.Forms.TabControl();
             tabControl1.SuspendLayout();
             this.tabPage_Serial.SuspendLayout();
@@ -483,7 +483,7 @@ namespace Freescale_debug
             this.zedGraph_local.ScrollMinX = 0D;
             this.zedGraph_local.ScrollMinY = 0D;
             this.zedGraph_local.ScrollMinY2 = 0D;
-            this.zedGraph_local.Size = new System.Drawing.Size(679, 393);
+            this.zedGraph_local.Size = new System.Drawing.Size(724, 413);
             this.zedGraph_local.TabIndex = 0;
             // 
             // tabPage_PIDSettings
@@ -517,7 +517,7 @@ namespace Freescale_debug
             this.groupBox_BalanceCar.Controls.Add(this.groupBox_Balance_Direction);
             this.groupBox_BalanceCar.Controls.Add(this.groupBox_Balance_Speed);
             this.groupBox_BalanceCar.Controls.Add(this.groupBox_Balance_Stand);
-            this.groupBox_BalanceCar.Location = new System.Drawing.Point(332, 17);
+            this.groupBox_BalanceCar.Location = new System.Drawing.Point(56, 197);
             this.groupBox_BalanceCar.Name = "groupBox_BalanceCar";
             this.groupBox_BalanceCar.Size = new System.Drawing.Size(563, 227);
             this.groupBox_BalanceCar.TabIndex = 8;
@@ -1308,6 +1308,15 @@ namespace Freescale_debug
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "groupBox3";
             // 
+            // label31
+            // 
+            this.label31.AutoSize = true;
+            this.label31.Location = new System.Drawing.Point(20, 83);
+            this.label31.Name = "label31";
+            this.label31.Size = new System.Drawing.Size(65, 12);
+            this.label31.TabIndex = 5;
+            this.label31.Text = "选择路径：";
+            // 
             // checkBox_CCD_ONOFF
             // 
             this.checkBox_CCD_ONOFF.AutoSize = true;
@@ -1644,15 +1653,6 @@ namespace Freescale_debug
             this.label29.Size = new System.Drawing.Size(47, 12);
             this.label29.TabIndex = 14;
             this.label29.Text = "Status:";
-            // 
-            // label31
-            // 
-            this.label31.AutoSize = true;
-            this.label31.Location = new System.Drawing.Point(20, 83);
-            this.label31.Name = "label31";
-            this.label31.Size = new System.Drawing.Size(65, 12);
-            this.label31.TabIndex = 5;
-            this.label31.Text = "选择路径：";
             // 
             // Form1
             // 
