@@ -1782,6 +1782,11 @@ namespace Freescale_debug
                 zedGrpahNames[id].IsSingleWindowShowed = true;
 
                 FindTextboxAndShowWindow(id);
+
+                if (_isLoadHistory)
+                {
+                    ClearCurves();
+                }
             }
             else
             {
@@ -1986,9 +1991,9 @@ namespace Freescale_debug
                 {
                     var countLine = 0;
 
-                    ReadPIDFromText(lines, countLine);
-                    ReadCustomParaFromText(lines, countLine);
-                    ReadScopeFromText(lines, countLine);
+                    countLine = ReadPIDFromText(lines, countLine);
+                    countLine = ReadCustomParaFromText(lines, countLine);
+                    countLine = ReadScopeFromText(lines, countLine);
                 }
                 _isLoadHistory = true;
 
@@ -2064,7 +2069,7 @@ namespace Freescale_debug
             //示波器参数
             var countScope = 0;
             var checkDrawing = new CheckBox[ScopeNumber];
-            var txtBox_Scope = new TextBox[ScopeNumber];
+            var txtBoxScope = new TextBox[ScopeNumber];
             var buttonNewForm = new Button[ScopeNumber];
 
             for (var i = 0; i < ScopeNumber; i++)
@@ -2073,7 +2078,7 @@ namespace Freescale_debug
                     (CheckBox)
                         panel_Scope.Controls.Find("checkBox_Def" + Convert.ToString(i + 1), true)[0];
 
-                txtBox_Scope[i] =
+                txtBoxScope[i] =
                     (TextBox) panel_Scope.Controls.Find("txtName" + Convert.ToString(i + 1), true)[0];
 
                 buttonNewForm[i] =
@@ -2089,6 +2094,7 @@ namespace Freescale_debug
                 if (checkDrawing[i].Checked)
                 {
                     sw.WriteLine("ScopeLineOrder:{0}", i);
+                    sw.WriteLine("CurrenScopeName:{0}", txtBoxScope[i].Text);
                     sw.WriteLine("PointNumber:{0}", zedGrpahNames[i].listZed.Count);
 
                     for (var j = 0; j < zedGrpahNames[i].listZed.Count; j++)
@@ -2100,22 +2106,23 @@ namespace Freescale_debug
             }
         }
 
-        private void ReadPIDFromText(List<string> lines, int countLine)
+        private int ReadPIDFromText(List<string> lines, int countLine)
         {
             int carType = Convert.ToInt32(lines.ElementAt(countLine).Split(':').ElementAt(1));
             countLine++;
 
             if (carType == 0) //直立车
             {
-                ReadBalancePIDFromText(lines, countLine);
+                countLine = ReadBalancePIDFromText(lines, countLine);
             }
             else if (carType == 1) //四轮车
             {
-                ReadFourwheelPIDFromText(lines, countLine);
+                countLine = ReadFourwheelPIDFromText(lines, countLine);
             }
+            return countLine;
         }
 
-        private void ReadBalancePIDFromText(List<string> lines, int countLine)
+        private int ReadBalancePIDFromText(List<string> lines, int countLine)
         {
             var indexP = lines.ElementAt(countLine).IndexOf('P');
             var indexI = lines.ElementAt(countLine).IndexOf(" I", StringComparison.Ordinal);
@@ -2153,9 +2160,11 @@ namespace Freescale_debug
             textBox_Direction_I.Text = directionI;
             textBox_Direction_D.Text = directionD;
             ++countLine;
+
+            return countLine;
         }
 
-        private void ReadFourwheelPIDFromText(List<string> lines, int countLine)
+        private int ReadFourwheelPIDFromText(List<string> lines, int countLine)
         {
             var indexP = lines.ElementAt(countLine).IndexOf('P');
             var indexI = lines.ElementAt(countLine).IndexOf(" I", StringComparison.Ordinal);
@@ -2181,9 +2190,11 @@ namespace Freescale_debug
             textBox_Motor_I.Text = motorI;
             textBox_Motor_D.Text = motorD;
             ++countLine;
+
+            return countLine;
         }
 
-        private void ReadCustomParaFromText(List<string> lines, int countLine)
+        private int ReadCustomParaFromText(List<string> lines, int countLine)
         {
             //自定义参数
             if (lines.ElementAt(countLine).Contains("DIY_Num"))
@@ -2264,9 +2275,11 @@ namespace Freescale_debug
                     }
                 }
             }
+
+            return countLine;
         }
 
-        private void ReadScopeFromText(List<string> lines, int countLine)
+        private int ReadScopeFromText(List<string> lines, int countLine)
         {
             //Scope
             for (var i = 0; i < ScopeNumber; i++) //首先清除所有的曲线数据
@@ -2285,6 +2298,23 @@ namespace Freescale_debug
                     {
                         int scopeOrder = Convert.ToInt32(lines.ElementAt(countLine).Split(':').ElementAt(1));
                         ++countLine;
+
+                        if (lines.ElementAt(countLine).Contains("CurrenScopeName")) //之前的名字,没有这一条就不加
+                        {
+                            try
+                            {
+                                string scopeName = lines.ElementAt(countLine).Split(':').ElementAt(1);
+                                ++countLine;
+
+                                var txtBox_Scope = (TextBox)panel_Scope.Controls.Find("txtName" + 
+                                    Convert.ToString(scopeOrder + 1), true)[0];
+                                txtBox_Scope.Text = scopeName;
+                            }
+                            catch
+                            {
+                            }
+                        }
+
                         if (lines.ElementAt(countLine).Contains("PointNumber")) //点数量
                         {
                             int scopePointNum =
@@ -2315,6 +2345,7 @@ namespace Freescale_debug
 
                 refleshZedPane(zedGraph_local);
             } //Scope End
+            return countLine;
         }
         #endregion
 

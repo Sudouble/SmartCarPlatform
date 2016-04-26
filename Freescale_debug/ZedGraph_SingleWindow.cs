@@ -15,7 +15,7 @@ namespace Freescale_debug
             Color.CornflowerBlue, Color.Red, Color.Yellow, Color.Gray
         };
 
-        private readonly PointPairList _listZed = new PointPairList();
+        private PointPairList _listZed = new PointPairList();
         private readonly string curveName; //曲线命
 
         private readonly int curveNumber; //曲线号
@@ -28,9 +28,19 @@ namespace Freescale_debug
             InitializeComponent();
 
             coV.ValueUpdatedEvent += co_UpdateCurveEvent;
+            coV.PointListUpdateEvent += CoVOnPointListUpdateEvent;
             curveNumber = id;
             curveName = name;
             Text = curveName + @"——曲线" + (curveNumber + 1) + @"——" + @"飞思卡尔调试平台 V1.2";
+        }
+
+        private void CoVOnPointListUpdateEvent(PointPairList points)
+        {
+            _listZed = new PointPairList(points);
+            zedGraph_Single.GraphPane.AddCurve(curveName, _listZed, _colorLine[curveNumber],
+                SymbolType.None);
+
+            refleshZedPane(zedGraph_Single);
         }
 
         public sealed override string Text
@@ -208,14 +218,24 @@ namespace Freescale_debug
     //进行窗体间传参的公共接口
     public delegate void ValueUpdatedHandler(double x, double y);
 
+    public delegate void PointListUpdateHander(PointPairList points);
+
     public class CallObject
     {
         public event ValueUpdatedHandler ValueUpdatedEvent;
+
+        public event PointListUpdateHander PointListUpdateEvent;
 
         public void CallEvent(double x, double y)
         {
             var onValueUpdatedEvent = ValueUpdatedEvent;
             if (onValueUpdatedEvent != null) onValueUpdatedEvent(x, y);
+        }
+
+        public void CallPointPairEvent(PointPairList points)
+        {
+            var onValueUpdatedEvent = PointListUpdateEvent;
+            if (onValueUpdatedEvent != null) onValueUpdatedEvent(points);
         }
     }
 }

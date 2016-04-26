@@ -10,7 +10,6 @@ namespace FreescalePlatformTest
         [TestMethod]
         public void TestMethod1()
         {
-
         }
     }
 }
