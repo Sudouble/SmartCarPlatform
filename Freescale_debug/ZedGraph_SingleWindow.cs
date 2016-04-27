@@ -17,6 +17,7 @@ namespace Freescale_debug
 
         private PointPairList _listZed = new PointPairList();
         private readonly string curveName; //曲线命
+        private bool isLoadHistory = false;
 
         private readonly int curveNumber; //曲线号
         private bool _pauseFlag;
@@ -32,15 +33,6 @@ namespace Freescale_debug
             curveNumber = id;
             curveName = name;
             Text = curveName + @"——曲线" + (curveNumber + 1) + @"——" + @"飞思卡尔调试平台 V1.2";
-        }
-
-        private void CoVOnPointListUpdateEvent(PointPairList points)
-        {
-            _listZed = new PointPairList(points);
-            zedGraph_Single.GraphPane.AddCurve(curveName, _listZed, _colorLine[curveNumber],
-                SymbolType.None);
-
-            refleshZedPane(zedGraph_Single);
         }
 
         public sealed override string Text
@@ -121,8 +113,12 @@ namespace Freescale_debug
 
         public void co_UpdateCurveEvent(double x, double y)
         {
-            //listZed.Add(x, y);
-            //timer_fresh.Start();
+            if (isLoadHistory)
+            {
+                isLoadHistory = false;
+                _listZed.RemoveRange(0, _listZed.Count);
+            }
+
             if (!_pauseFlag)
             {
                 if (_zedWidth == 0)
@@ -149,6 +145,18 @@ namespace Freescale_debug
 
                 refleshZedPane(zedGraph_Single);
             }
+        }
+
+        private void CoVOnPointListUpdateEvent(PointPairList points)
+        {
+            isLoadHistory = true;
+
+            foreach (PointPair t in points)
+            {
+                _listZed.Add(t);
+            }
+
+            refleshZedPane(zedGraph_Single);
         }
 
         private void button_ClearData_Click(object sender, EventArgs e)

@@ -1785,7 +1785,7 @@ namespace Freescale_debug
 
                 if (_isLoadHistory)
                 {
-                    ClearCurves();
+                    coOb[id].CallPointPairEvent(zedGrpahNames[id].listZed);
                 }
             }
             else
