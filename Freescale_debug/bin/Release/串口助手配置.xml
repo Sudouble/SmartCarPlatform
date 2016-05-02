@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<!--配置文件为软件自动生成，非软件的编写者不要尝试修改。by leomon 2015/8/21-->
+<!--配置文件为软件自动生成，非软件的编写者不要尝试修改。by leomon 2016/4/29-->
 <configuration firstTimeRunning="false">
   <Stand_P>1</Stand_P>
   <Stand_I>0 </Stand_I>
@@ -260,8 +260,6 @@
   <SCOPE_TextName6>波形6</SCOPE_TextName6>
   <SCOPE_TextName7>波形7</SCOPE_TextName7>
   <SCOPE_TextName8>波形8</SCOPE_TextName8>
-  <acceptChar>False</acceptChar>
-  <showInfo>True</showInfo>
   <radioButton_carType>False</radioButton_carType>
   <DIY_CheckState1>False</DIY_CheckState1>
   <DIY_CheckState2>False</DIY_CheckState2>
@@ -348,11 +346,5 @@
   <SCOPE_CheckState6>False</SCOPE_CheckState6>
   <SCOPE_CheckState7>False</SCOPE_CheckState7>
   <SCOPE_CheckState8>False</SCOPE_CheckState8>
-  <selectedPort>2</selectedPort>
-  <baudRate>11</baudRate>
-  <parity>0</parity>
-  <dataBits>0</dataBits>
-  <stopBits>0</stopBits>
-  <intervalTime>500</intervalTime>
   <DIY_Number>77</DIY_Number>
 </configuration>

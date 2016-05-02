@@ -1,15 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<!--配置文件为软件自动生成，非软件的编写者不要尝试修改。by leomon 2016/4/27-->
+<!--配置文件为软件自动生成，非软件的编写者不要尝试修改。by leomon 2016/4/30-->
 <configuration firstTimeRunning="false">
-  <Stand_P>12</Stand_P>
+  <Stand_P>6.2</Stand_P>
   <Stand_I>0</Stand_I>
-  <Stand_D>3.5</Stand_D>
-  <Speed_P>15</Speed_P>
-  <Speed_I>20</Speed_I>
-  <Speed_D>6</Speed_D>
-  <Direction_P>2.45</Direction_P>
+  <Stand_D>1.8</Stand_D>
+  <Speed_P>10</Speed_P>
+  <Speed_I>1.5</Speed_I>
+  <Speed_D>0</Speed_D>
+  <Direction_P>1.4</Direction_P>
   <Direction_I>0</Direction_I>
-  <Direction_D>12</Direction_D>
+  <Direction_D>5</Direction_D>
   <RealtimeNum>20</RealtimeNum>
   <textElectName1>实时变量1</textElectName1>
   <txtElectValue1 />
@@ -82,7 +82,7 @@
   <DIY_TextValue10>1.0</DIY_TextValue10>
   <buttonSubmit10>修改</buttonSubmit10>
   <SCOPE_TextName1>角度</SCOPE_TextName1>
-  <SCOPE_TextName2>6677</SCOPE_TextName2>
+  <SCOPE_TextName2>223d</SCOPE_TextName2>
   <SCOPE_TextName3>JIAO_PWM</SCOPE_TextName3>
   <SCOPE_TextName4>S_PWM</SCOPE_TextName4>
   <SCOPE_TextName5>L_PWM</SCOPE_TextName5>
@@ -109,5 +109,5 @@
   <SCOPE_CheckState7>False</SCOPE_CheckState7>
   <SCOPE_CheckState8>False</SCOPE_CheckState8>
   <DIY_Number>10</DIY_Number>
-  <comboboxCCDPath>2</comboboxCCDPath>
+  <comboboxCCDPath>1</comboboxCCDPath>
 </configuration>
