@@ -1940,6 +1940,96 @@ namespace Freescale_debug
             }
         }
 
+        private void button_ExportMatlab_Click(object sender, EventArgs e)
+        {
+            saveFileDialog_History.Title = @"导出曲线数据";
+            saveFileDialog_History.Filter = @"配置文件(*.m)|*.m|所有类型(*.*)|(*.*)";
+            saveFileDialog_History.RestoreDirectory = true;
+            if (saveFileDialog_History.ShowDialog() == DialogResult.OK)
+            {
+                var fileName = saveFileDialog_History.FileName;
+                saveFileDialog_History.FileName = fileName.Substring(fileName.LastIndexOf("\\", 
+                                                                StringComparison.Ordinal) + 1);
+                //MessageBox.Show(fileName + filter);
+                var fs = new FileStream(fileName, FileMode.Create, FileAccess.Write);
+                var sw = new StreamWriter(fs, Encoding.Default);
+
+                WriteToMatlabFile(sw, fileName);
+
+                sw.Close();
+            }
+        }
+
+        private void WriteToMatlabFile(StreamWriter sw, string fileName)
+        {
+            //示波器参数
+            var countScope = 0;
+            var checkDrawing = new CheckBox[ScopeNumber];
+            var txtBoxScope = new TextBox[ScopeNumber];
+            var buttonNewForm = new Button[ScopeNumber];
+
+            for (var i = 0; i < ScopeNumber; i++)
+            {
+                checkDrawing[i] =
+                    (CheckBox)
+                        panel_Scope.Controls.Find("checkBox_Def" + Convert.ToString(i + 1), true)[0];
+
+                txtBoxScope[i] =
+                    (TextBox)panel_Scope.Controls.Find("txtName" + Convert.ToString(i + 1), true)[0];
+
+                buttonNewForm[i] =
+                    (Button)panel_Scope.Controls.Find("buttonDraw" + Convert.ToString(i + 1), true)[0];
+
+                if (checkDrawing[i].Checked)
+                    ++countScope;
+            }
+
+            sw.WriteLine("clc");
+            sw.WriteLine("clear all");
+            sw.WriteLine("close all");
+            sw.WriteLine("\r\n");
+            sw.WriteLine("ScopeLineNumber = {0};", countScope);
+
+            for (var i = 0; i < ScopeNumber; i++)
+            {
+                if (checkDrawing[i].Checked)
+                {
+                    sw.WriteLine("%%");
+                    sw.WriteLine("size{0}_{1} = 1:{2};", i+1, txtBoxScope[i].Text, zedGrpahNames[i].listZed.Count);
+                    sw.Write("Scope{0}_{1} = ", i+1, txtBoxScope[i].Text);
+                    sw.Write("[");
+
+                    int perLineCount = 0;
+                    int perLineThresold = 20;
+                    for (var j = 0; j < zedGrpahNames[i].listZed.Count; j++)
+                    {
+                        sw.Write("{0},", zedGrpahNames[i].listZed.ElementAt(j).Y);
+
+                        perLineCount++;
+                        if (perLineCount > perLineThresold)
+                        {
+                            perLineCount = 0;
+
+                            sw.Write("...\r\n");
+                        }
+                    }
+                    sw.Write("];");
+                    sw.WriteLine("\r\n%%");
+                    sw.WriteLine("\r\n");
+                }
+            }
+
+            sw.WriteLine("%% 示波器中变量名称：");
+            for (var i = 0; i < ScopeNumber; i++)
+            {
+                if (checkDrawing[i].Checked)
+                {
+                    sw.Write("%% {0}. size{0}_{1}; ", i+1, txtBoxScope[i].Text);
+                    sw.Write("Scope{0}_{1}\r\n", i+1, txtBoxScope[i].Text);
+                }
+            }
+        }
+
         #endregion
 
         #region 历史数据
@@ -2413,6 +2503,6 @@ namespace Freescale_debug
             return true;
         }
 
-        #endregion 
+        #endregion
     }
 }

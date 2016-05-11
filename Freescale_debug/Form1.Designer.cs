@@ -1595,12 +1595,13 @@ namespace Freescale_debug
             // 
             // button_ExportMatlab
             // 
-            this.button_ExportMatlab.Location = new System.Drawing.Point(25, 235);
+            this.button_ExportMatlab.Location = new System.Drawing.Point(36, 235);
             this.button_ExportMatlab.Name = "button_ExportMatlab";
-            this.button_ExportMatlab.Size = new System.Drawing.Size(145, 23);
+            this.button_ExportMatlab.Size = new System.Drawing.Size(115, 23);
             this.button_ExportMatlab.TabIndex = 4;
-            this.button_ExportMatlab.Text = "数据导出到matlab(无)";
+            this.button_ExportMatlab.Text = "数据导出到MATLAB";
             this.button_ExportMatlab.UseVisualStyleBackColor = true;
+            this.button_ExportMatlab.Click += new System.EventHandler(this.button_ExportMatlab_Click);
             // 
             // button_loadHistory
             // 
@@ -1614,9 +1615,9 @@ namespace Freescale_debug
             // 
             // button_History
             // 
-            this.button_History.Location = new System.Drawing.Point(60, 177);
+            this.button_History.Location = new System.Drawing.Point(45, 177);
             this.button_History.Name = "button_History";
-            this.button_History.Size = new System.Drawing.Size(75, 23);
+            this.button_History.Size = new System.Drawing.Size(106, 23);
             this.button_History.TabIndex = 2;
             this.button_History.Text = "保存当前运行值";
             this.button_History.UseVisualStyleBackColor = true;
