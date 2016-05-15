@@ -43,7 +43,7 @@ namespace Freescale_debug
 
         private void WritePortSetup(Editor editor)
         {
-            if (hasPorts)
+            if (_hasPorts)
             {
                 //保存选中的端口
                 editor.PutInt32("selectedPort", comboBox_port.SelectedIndex);
@@ -228,7 +228,7 @@ namespace Freescale_debug
         private void ReadPortSetup(SharedPreferences sp)
         {
             //读取选中的端口
-            if (hasPorts)
+            if (_hasPorts)
             {
                 //判断当前端口的数量，小于则表示是OK。
                 if (sp.GetInt32("selectedPort", 0) < comboBox_port.Items.Count)

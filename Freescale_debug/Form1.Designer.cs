@@ -1667,7 +1667,7 @@ namespace Freescale_debug
             this.Controls.Add(this.groupBox_portSetting);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "Form1";
-            this.Text = "智能车调试平台 V1.2";
+            this.Text = "智能车调试平台 V1.2.1";
             this.Activated += new System.EventHandler(this.Form1_Activated);
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Form1_FormClosed);
             this.Load += new System.EventHandler(this.Form1_Load);

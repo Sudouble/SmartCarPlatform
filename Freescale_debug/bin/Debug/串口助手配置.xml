@@ -1,15 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<!--配置文件为软件自动生成，非软件的编写者不要尝试修改。by leomon 2016/5/11-->
+<!--配置文件为软件自动生成，非软件的编写者不要尝试修改。by leomon 2016/5/15-->
 <configuration firstTimeRunning="false">
-  <Stand_P>6.2</Stand_P>
-  <Stand_I>0</Stand_I>
-  <Stand_D>1.8</Stand_D>
-  <Speed_P>10</Speed_P>
-  <Speed_I>1.5</Speed_I>
-  <Speed_D>0</Speed_D>
-  <Direction_P>1.4</Direction_P>
-  <Direction_I>0</Direction_I>
-  <Direction_D>5</Direction_D>
+  <Steer_P>1.0</Steer_P>
+  <Steer_I>1.0</Steer_I>
+  <Steer_D>1.0</Steer_D>
+  <Motor_P>1.0</Motor_P>
+  <Motor_I>1.0</Motor_I>
+  <Motor_D>1.0</Motor_D>
   <RealtimeNum>20</RealtimeNum>
   <textElectName1>实时变量1</textElectName1>
   <txtElectValue1 />
@@ -81,6 +78,18 @@
   <DIY_TextName10>Name10</DIY_TextName10>
   <DIY_TextValue10>1.0</DIY_TextValue10>
   <buttonSubmit10>修改</buttonSubmit10>
+  <DIY_TextName11>Name11</DIY_TextName11>
+  <DIY_TextValue11>1.0</DIY_TextValue11>
+  <buttonSubmit11>修改</buttonSubmit11>
+  <DIY_TextName12>Name12</DIY_TextName12>
+  <DIY_TextValue12>1.0</DIY_TextValue12>
+  <buttonSubmit12>修改</buttonSubmit12>
+  <DIY_TextName13>Name13</DIY_TextName13>
+  <DIY_TextValue13>1.0</DIY_TextValue13>
+  <buttonSubmit13>修改</buttonSubmit13>
+  <DIY_TextName14>Name14</DIY_TextName14>
+  <DIY_TextValue14>1.0</DIY_TextValue14>
+  <buttonSubmit14>修改</buttonSubmit14>
   <SCOPE_TextName1>LG3_X</SCOPE_TextName1>
   <SCOPE_TextName2>Angle</SCOPE_TextName2>
   <SCOPE_TextName3>Ang_ACC</SCOPE_TextName3>
@@ -89,9 +98,7 @@
   <SCOPE_TextName6>MMA_Z</SCOPE_TextName6>
   <SCOPE_TextName7>none</SCOPE_TextName7>
   <SCOPE_TextName8>cnt_black</SCOPE_TextName8>
-  <acceptChar>False</acceptChar>
-  <showInfo>True</showInfo>
-  <radioButton_carType>False</radioButton_carType>
+  <radioButton_carType>True</radioButton_carType>
   <DIY_CheckState1>True</DIY_CheckState1>
   <DIY_CheckState2>True</DIY_CheckState2>
   <DIY_CheckState3>True</DIY_CheckState3>
@@ -102,6 +109,10 @@
   <DIY_CheckState8>False</DIY_CheckState8>
   <DIY_CheckState9>False</DIY_CheckState9>
   <DIY_CheckState10>False</DIY_CheckState10>
+  <DIY_CheckState11>False</DIY_CheckState11>
+  <DIY_CheckState12>False</DIY_CheckState12>
+  <DIY_CheckState13>False</DIY_CheckState13>
+  <DIY_CheckState14>False</DIY_CheckState14>
   <SCOPE_CheckState1>True</SCOPE_CheckState1>
   <SCOPE_CheckState2>True</SCOPE_CheckState2>
   <SCOPE_CheckState3>True</SCOPE_CheckState3>
@@ -110,12 +121,6 @@
   <SCOPE_CheckState6>True</SCOPE_CheckState6>
   <SCOPE_CheckState7>False</SCOPE_CheckState7>
   <SCOPE_CheckState8>False</SCOPE_CheckState8>
-  <selectedPort>0</selectedPort>
-  <baudRate>11</baudRate>
-  <parity>0</parity>
-  <dataBits>0</dataBits>
-  <stopBits>0</stopBits>
-  <intervalTime>500</intervalTime>
-  <DIY_Number>10</DIY_Number>
+  <DIY_Number>14</DIY_Number>
   <comboboxCCDPath>1</comboboxCCDPath>
 </configuration>

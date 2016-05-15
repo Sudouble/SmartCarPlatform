@@ -42,6 +42,7 @@ namespace Freescale_debug
             this.textBox1 = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.button_pause = new System.Windows.Forms.Button();
+            this.buttonSetting = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // zedGraph_Single
@@ -121,11 +122,22 @@ namespace Freescale_debug
             this.button_pause.UseVisualStyleBackColor = true;
             this.button_pause.Click += new System.EventHandler(this.button_pause_Click);
             // 
-            // ZedGraph_SingleWindow
+            // buttonSetting
+            // 
+            this.buttonSetting.Location = new System.Drawing.Point(547, 358);
+            this.buttonSetting.Name = "buttonSetting";
+            this.buttonSetting.Size = new System.Drawing.Size(76, 23);
+            this.buttonSetting.TabIndex = 6;
+            this.buttonSetting.Text = "设置（无）";
+            this.buttonSetting.UseVisualStyleBackColor = true;
+            this.buttonSetting.Click += new System.EventHandler(this.buttonSetting_Click);
+            // 
+            // ZedGraphSingleWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(635, 403);
+            this.Controls.Add(this.buttonSetting);
             this.Controls.Add(this.button_pause);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.textBox1);
@@ -152,5 +164,6 @@ namespace Freescale_debug
         private TextBox textBox1;
         private Label label1;
         private Button button_pause;
+        private Button buttonSetting;
     }
 }

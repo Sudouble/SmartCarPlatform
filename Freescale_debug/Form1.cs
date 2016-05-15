@@ -25,6 +25,7 @@ namespace Freescale_debug
         //ZedGraph
         private const int ScopeNumber = 8; //示波器能画曲线的数量
         private const string SavefileName = "串口助手配置.xml";
+        private readonly ZedGrpahName[] zedGrpahNames = new ZedGrpahName[ScopeNumber];
 
         private readonly Color[] _colorLine =
         {
@@ -34,21 +35,22 @@ namespace Freescale_debug
 
         //发送串口数据的队列，直到收到有效数据为止
         private readonly Queue _queueEchoControl = new Queue(); //根据这个来判断是不是要进行重发
-        private readonly List<int> _recieveBuff = new List<int>();
-        private readonly double _xminScale = 0;
+        private GetEchoForm tmpSendHandle = new GetEchoForm(1, "");
         private Bitmap _bitmapOld;
-
-        //SerialPort Flags
-        private bool _closing; //是否正在关闭串口，执行Application.DoEvents，并阻止再次
 
         private bool _isLoadHistory;
         //自定义参数的一些变量
         private bool _listening; //是否没有执行完invoke相关操作  
         private int _xmaxScale = 100;
+        private double _xminScale = 0;
         private double _ymaxScale = 100;
         private double _yminScale = -10;
         //ZedGraph 窗体间传参
         public CallObject[] coOb = new CallObject[ScopeNumber];
+
+        private readonly List<int> _recieveBuff = new List<int>();
+        //SerialPort Flags
+        private bool _closing; //是否正在关闭串口，执行Application.DoEvents，并阻止再次
 
         private ReceivedDataType myReceivedDataType = ReceivedDataType.CharType;
         private SendDataType mySendDataType = SendDataType.CharType;
@@ -56,10 +58,8 @@ namespace Freescale_debug
         private int retryCount;
         private bool showInfo = true;
 
-        private GetEchoForm tmpSendHandle = new GetEchoForm(1, "");
         private int totalReceivedBytes;
         public UpdateAcceptTextBoxTextHandler UpdateTextHandler;
-        private readonly ZedGrpahName[] zedGrpahNames = new ZedGrpahName[ScopeNumber];
 
         //线程的委托//使线程可以改变控件的值
         private delegate void DoWorkUiThreadDelegate(string recvString, List<int> recvByte);
@@ -175,7 +175,7 @@ namespace Freescale_debug
             //判断是否有可用的端口
             if (allAvailablePorts.Length > 0)
             {
-                hasPorts = true;
+                _hasPorts = true;
                 //使能控件portNamesComboBox，openOrCloseButton
                 button_openPort.Enabled = true;
                 comboBox_port.Enabled = true;
@@ -193,7 +193,7 @@ namespace Freescale_debug
             }
             else
             {
-                hasPorts = false;
+                _hasPorts = false;
                 checkBox_sendAuto.Enabled = false;
                 button_sendmessage.Enabled = false;
                 //stopSendButton.Enabled = false;
@@ -466,10 +466,10 @@ namespace Freescale_debug
                 }
                 else if (father == 3) //实时参数
                 {
-                    int Elect_num = Convert.ToInt32(splittedMessage.ElementAt(2 + 4*k));
+                    int electNum = Convert.ToInt32(splittedMessage.ElementAt(2 + 4*k));
                     var realTimeValue = splittedMessage.ElementAt(3 + 4*k);
 
-                    ReadRealtimeFromChip(Elect_num, realTimeValue);
+                    ReadRealtimeFromChip(electNum, realTimeValue);
                 }
                 else if (father == 4) //传送到示波器的数据
                 {
@@ -489,7 +489,7 @@ namespace Freescale_debug
                 {
                     int child = Convert.ToInt32(splittedMessage.ElementAt(2 + 4*k));
                     var valueCustomPara =
-                        (Convert.ToDouble(splittedMessage.ElementAt(3 + 4*k))/1000.0).ToString();
+                        (Convert.ToDouble(splittedMessage.ElementAt(3 + 4*k))/1000.0).ToString(CultureInfo.CurrentCulture);
 
                     ReadCustomParaFromChip(child, valueCustomPara);
                 }
@@ -525,7 +525,7 @@ namespace Freescale_debug
 
                 //将参数赋值到相应的版块
                 var value = Convert.ToDouble(realTimeStr)/1000;
-                txtBox.Text = value.ToString();
+                txtBox.Text = value.ToString(CultureInfo.InvariantCulture);
             }
         }
 
@@ -667,7 +667,7 @@ namespace Freescale_debug
             }
         }
 
-        private void ReadCustomParaFromChip(int child, string CustomParaStrings)
+        private void ReadCustomParaFromChip(int child, string customParaStrings)
         {
             var total = Convert.ToInt32(textBox_DIY_Number.Text);
 
@@ -680,7 +680,7 @@ namespace Freescale_debug
 
                 if (checkboxSelect.Checked)
                 {
-                    txtBox.Text = CustomParaStrings;
+                    txtBox.Text = customParaStrings;
                 }
             }
         }
@@ -721,7 +721,7 @@ namespace Freescale_debug
                 MessageBox.Show(ee.Message);
             }
             //do something
-            button_openPort.Text = "打开串口";
+            button_openPort.Text = @"打开串口";
             //更新状态栏的显示
             //statusDisplayToolStripStatusLabel.Text = string.Format("  关闭端口 {0}成功！",
             //    mySerialPort.PortName);
@@ -759,8 +759,8 @@ namespace Freescale_debug
             }
             catch (IOException ee)
             {
-                MessageBox.Show(ee.Message + "已经将 停止位 设置为 默认一位 了！",
-                    "提示！", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(ee.Message + @"已经将 停止位 设置为 默认一位 了！",
+                    @"提示！", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 mySerialPort.StopBits = StopBits.One;
                 comboBox_stopbit.SelectedItem = "1";
             }
@@ -768,7 +768,7 @@ namespace Freescale_debug
 
         private StopBits GetSelectedStopBits()
         {
-            var stopBits = StopBits.One;
+            StopBits stopBits;
             switch (comboBox_stopbit.SelectedItem.ToString())
             {
                 case "1":
@@ -795,7 +795,7 @@ namespace Freescale_debug
 
         private int GetSelectedBaudRate()
         {
-            var baudRate = 0;
+            int baudRate;
             if (!int.TryParse(comboBox_baudrate.SelectedItem.ToString(), out baudRate))
             {
                 baudRate = 9600;
@@ -815,7 +815,7 @@ namespace Freescale_debug
 
         private Parity GetSelectedParity()
         {
-            var parity = Parity.None;
+            Parity parity;
             var selectedParityWay = comboBox_parity.SelectedItem.ToString();
             switch (selectedParityWay)
             {
@@ -868,7 +868,7 @@ namespace Freescale_debug
                 //更新状态栏的显示
                 //statusDisplayToolStripStatusLabel.Text = string.Format("  打开端口 {0}成功！",
                 //    mySerialPort.PortName);
-                button_openPort.Text = "关闭串口";
+                button_openPort.Text = @"关闭串口";
                 //打开串口成功后
                 OpenSelectedPortSuccessfully();
             }
@@ -893,7 +893,7 @@ namespace Freescale_debug
             textBox_send.Enabled = true;
         }
 
-        private bool hasPorts;
+        private bool _hasPorts;
 
         /// <summary>
         ///     获取可用的端口名，并添加到选择框中，同时设置相关
@@ -906,7 +906,7 @@ namespace Freescale_debug
             //判断是否有可用的端口
             if (allAvailablePorts.Length > 0)
             {
-                hasPorts = true;
+                _hasPorts = true;
                 //使能控件portNamesComboBox，openOrCloseButton
                 button_openPort.Enabled = true;
                 comboBox_port.Enabled = true;
@@ -920,7 +920,7 @@ namespace Freescale_debug
             }
             else
             {
-                hasPorts = false;
+                _hasPorts = false;
                 checkBox_sendAuto.Enabled = false;
                 button_sendmessage.Enabled = false;
                 //stopSendButton.Enabled = false;
@@ -936,10 +936,9 @@ namespace Freescale_debug
 
         private void ShowWarningMessageBox()
         {
-            var result = new DialogResult();
-            result = MessageBox.Show("抱歉，没有检测到当前计算机中可用端口，请插入相关设备或者检查有关驱动是否安装？" +
-                                     Environment.NewLine + "提示：您可以取消后单击“查找可用端口”按钮重新查找。",
-                "自动查找计算机可用端口", MessageBoxButtons.RetryCancel, MessageBoxIcon.Warning);
+            var result = MessageBox.Show(@"抱歉，没有检测到当前计算机中可用端口，请插入相关设备或者检查有关驱动是否安装？" +
+                                                  Environment.NewLine + @"提示：您可以取消后单击“查找可用端口”按钮重新查找。",
+                @"自动查找计算机可用端口", MessageBoxButtons.RetryCancel, MessageBoxIcon.Warning);
             if (result == DialogResult.Retry)
             {
                 //重新运行检测方法
@@ -1800,7 +1799,12 @@ namespace Freescale_debug
                                                              Convert.ToString(id + 1), true)[0];
 
             var singleWindow = new ZedGraphSingleWindow(id, coOb[id], txtBox.Text);
-            singleWindow.SingnleClosedEvent += SingleWindowClosed_RecvInfo;
+            singleWindow.SignalClosedEvent += SingleWindowClosed_RecvInfo;
+            singleWindow.SignalLoadEvent += delegate(ZedGraphSingleWindow window, int i)
+            {
+                window.PauseFlag = false;
+            };
+
             singleWindow.Show();
         }
 

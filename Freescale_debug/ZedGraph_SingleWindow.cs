@@ -6,6 +6,7 @@ using ZedGraph;
 namespace Freescale_debug
 {
     public delegate void SingleWindowClosedDelegate(int id);
+    public delegate void SingleWindowLoadDelegate(ZedGraphSingleWindow window, int id);
 
     public partial class ZedGraphSingleWindow : Form
     {
@@ -20,7 +21,7 @@ namespace Freescale_debug
         private bool isLoadHistory = false;
 
         private readonly int curveNumber; //曲线号
-        private bool _pauseFlag;
+        private bool _pauseFlag = true;
         private double _valueXStart;
         private int _zedWidth;
 
@@ -32,7 +33,7 @@ namespace Freescale_debug
             coV.PointListUpdateEvent += CoVOnPointListUpdateEvent;
             curveNumber = id;
             curveName = name;
-            Text = curveName + @"——曲线" + (curveNumber + 1) + @"——" + @"飞思卡尔调试平台 V1.2";
+            Text = curveName + @"——曲线" + (curveNumber + 1) + @"——" + @"飞思卡尔调试平台 V1.2.1";
         }
 
         public sealed override string Text
@@ -41,17 +42,28 @@ namespace Freescale_debug
             set { base.Text = value; }
         }
 
-        public event SingleWindowClosedDelegate SingnleClosedEvent;
+        public bool PauseFlag
+        {
+            get { return _pauseFlag; }
+            set { _pauseFlag = value; }
+        }
+
+        public event SingleWindowClosedDelegate SignalClosedEvent;
+
+        public event SingleWindowLoadDelegate SignalLoadEvent;
 
         private void ZedGraph_SingleWindow_Load(object sender, EventArgs e)
         {
             InitzedGraph();
+
+            if (SignalLoadEvent != null)
+                SignalLoadEvent(this, curveNumber);
         }
 
         private void ZedGraph_SingleWindow_FormClosed(object sender, FormClosedEventArgs e)
         {
-            if (SingnleClosedEvent != null)
-                SingnleClosedEvent(curveNumber);
+            if (SignalClosedEvent != null)
+                SignalClosedEvent(curveNumber);
 
             DialogResult = DialogResult.OK;
         }
@@ -220,6 +232,11 @@ namespace Freescale_debug
                 _pauseFlag = false;
                 button_pause.Text = @"暂停";
             }
+        }
+
+        private void buttonSetting_Click(object sender, EventArgs e)
+        {
+
         }
     }
 
