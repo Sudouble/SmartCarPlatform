@@ -127,7 +127,7 @@ namespace Freescale_debug
             if (WindowState == FormWindowState.Normal ||
                 WindowState == FormWindowState.Maximized)
             {
-                pictureBox_CameraActual.Height = pictureBox_CameraActual.Width / 3 * 4;
+                pictureBox_CameraActual.Height = pictureBox_CameraActual.Width /4*3;
             }
         }
 

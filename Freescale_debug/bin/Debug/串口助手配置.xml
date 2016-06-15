@@ -1,9 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<!--配置文件为软件自动生成，非软件的编写者不要尝试修改。by leomon 2016/5/15-->
+<!--配置文件为软件自动生成，非软件的编写者不要尝试修改。by leomon 2016/6/12-->
 <configuration firstTimeRunning="false">
-  <Steer_P>1.0</Steer_P>
-  <Steer_I>1.0</Steer_I>
-  <Steer_D>1.0</Steer_D>
+  <Steer_P>37.0</Steer_P>
+  <Steer_I>0</Steer_I>
+  <Steer_D>3.5</Steer_D>
   <Motor_P>1.0</Motor_P>
   <Motor_I>1.0</Motor_I>
   <Motor_D>1.0</Motor_D>

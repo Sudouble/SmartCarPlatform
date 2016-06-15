@@ -8,3 +8,5 @@ F:\Project_Compotition\6.MyFreescal_10th\New_for_platform\FreescalePlatform\Free
 F:\Project_Compotition\6.MyFreescal_10th\New_for_platform\FreescalePlatform\FreescalePlatformTest\obj\Debug\FreescalePlatformTest.csprojResolveAssemblyReference.cache
 F:\Project_Compotition\6.MyFreescal_10th\New_for_platform\FreescalePlatform\FreescalePlatformTest\obj\Debug\FreescalePlatformTest.dll
 F:\Project_Compotition\6.MyFreescal_10th\New_for_platform\FreescalePlatform\FreescalePlatformTest\obj\Debug\FreescalePlatformTest.pdb
+F:\Project_Compotition\6.MyFreescal_10th\New_for_platform\FreescalePlatform\FreescalePlatformTest\bin\Debug\Microsoft.VisualStudio.QualityTools.UnitTestFramework.dll
+F:\Project_Compotition\6.MyFreescal_10th\New_for_platform\FreescalePlatform\FreescalePlatformTest\bin\Debug\zh-Hans\Microsoft.VisualStudio.QualityTools.UnitTestFramework.resources.dll
