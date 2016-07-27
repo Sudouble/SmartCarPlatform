@@ -401,8 +401,8 @@ namespace Freescale_debug
                     splittedMessage.ElementAt(2 + 4*i).Trim() == "")
                     return false;
 
-                int father = Convert.ToInt32(splittedMessage.ElementAt(1 + 4*i));
-                int child = Convert.ToInt32(splittedMessage.ElementAt(2 + 4*i));
+                int father = splittedMessage.ElementAt(1 + 4*i).toInt32();
+                int child = splittedMessage.ElementAt(2 + 4*i).toInt32();
 
                 //表示不符合数据格式要求
                 if ((father < 0 || father > 8) && (child < 0 || child > 200))
@@ -422,7 +422,7 @@ namespace Freescale_debug
 
             for (var k = 0; k < countLength; k++)
             {
-                int father = Convert.ToInt32(splittedMessage.ElementAt(1 + EACH_MESSAGE_NUMBER*k));
+                int father = splittedMessage.ElementAt(1 + EACH_MESSAGE_NUMBER*k).toInt32();
 
                 if (father == 1 && checkBox_Camera_ONOFF.Checked)
                     //摄像头数据
@@ -444,7 +444,7 @@ namespace Freescale_debug
                     var length = ccdAlgorithm.GetCCDLength();
                     label_CCD_Width.Text = @"CCD宽度：" + length;
 
-                    int child = Convert.ToInt32(splittedMessage.ElementAt(2 + 4*k));
+                    int child = splittedMessage.ElementAt(2 + 4*k).toInt32();
                     if (child == 1) //CCD1
                     {
                         ccdAlgorithm.DrawCCDPicture(pictureBox_CCD1);
@@ -466,28 +466,28 @@ namespace Freescale_debug
                 }
                 else if (father == 3) //实时参数
                 {
-                    int electNum = Convert.ToInt32(splittedMessage.ElementAt(2 + 4*k));
+                    int electNum = splittedMessage.ElementAt(2 + 4*k).toInt32();
                     var realTimeValue = splittedMessage.ElementAt(3 + 4*k);
 
                     ReadRealtimeFromChip(electNum, realTimeValue);
                 }
                 else if (father == 4) //传送到示波器的数据
                 {
-                    int id = Convert.ToInt32(splittedMessage.ElementAt(2 + 4*k));
+                    int id = (splittedMessage.ElementAt(2 + 4*k)).toInt32();
                     var value = Convert.ToDouble(splittedMessage.ElementAt(3 + 4*k))/1000;
 
                     ReadFromChipAndDrawToScope(id, value);
                 }
                 else if (father == 5) //读取参数值(PID)
                 {
-                    int type = Convert.ToInt32(splittedMessage.ElementAt(2 + 4*k));
+                    int type = (splittedMessage.ElementAt(2 + 4 * k)).toInt32();
                     var valuePID = splittedMessage.ElementAt(3 + 4*k);
 
                     ReadPIDFromChip(type, valuePID);
                 }
                 else if (father == 6) //读取参数值(CustomPara)
                 {
-                    int child = Convert.ToInt32(splittedMessage.ElementAt(2 + 4*k));
+                    int child = (splittedMessage.ElementAt(2 + 4*k)).toInt32();
                     var valueCustomPara =
                         (Convert.ToDouble(splittedMessage.ElementAt(3 + 4*k))/1000.0).ToString(CultureInfo.CurrentCulture);
 
@@ -516,7 +516,7 @@ namespace Freescale_debug
 
         private void ReadRealtimeFromChip(int electNum, string realTimeStr)
         {
-            int totalContolsNum = Convert.ToInt32(textBox_Realtime_Number.Text);
+            int totalContolsNum = (textBox_Realtime_Number.Text).toInt32();
             if (electNum <= totalContolsNum) //发送的传感器数据比现有的小
             {
                 var txtBox = (TextBox)
@@ -625,13 +625,13 @@ namespace Freescale_debug
             if (indexP != -1 && indexI != -1 && indexD != -1)
             {
                 var valueP =
-                    (Convert.ToInt32(PIDStrings.Substring(indexP + 1, indexI - indexP - 1))/1000.0)
+                    ((PIDStrings.Substring(indexP + 1, indexI - indexP - 1).toInt32())/1000.0)
                         .ToString(CultureInfo.InvariantCulture);
                 var valueI =
-                    (Convert.ToInt32(PIDStrings.Substring(indexI + 1, indexD - indexI - 1))/1000.0)
+                    ((PIDStrings.Substring(indexI + 1, indexD - indexI - 1).toInt32())/1000.0)
                         .ToString(CultureInfo.InvariantCulture);
                 var valueD =
-                    (Convert.ToInt32(PIDStrings.Substring(indexD + 1))/1000.0).ToString(
+                    ((PIDStrings.Substring(indexD + 1).toInt32())/1000.0).ToString(
                         CultureInfo.InvariantCulture);
 
                 if (type == 1)
@@ -669,7 +669,7 @@ namespace Freescale_debug
 
         private void ReadCustomParaFromChip(int child, string customParaStrings)
         {
-            var total = Convert.ToInt32(textBox_DIY_Number.Text);
+            var total = (textBox_DIY_Number.Text).toInt32();
 
             if (child < total)
             {
@@ -1003,7 +1003,7 @@ namespace Freescale_debug
                     button_sendmessage.Text = "自动发送中";
 
                     timer_autoSend.Enabled = true;
-                    timer_autoSend.Interval = Convert.ToInt32(textBox_sendPeriod.Text);
+                    timer_autoSend.Interval = (textBox_sendPeriod.Text).toInt32();
                     timer_autoSend.Start();
                 }
                 else
@@ -1494,7 +1494,7 @@ namespace Freescale_debug
         {
             if (isCustomParaValidate())
             {
-                var total = Convert.ToInt32(textBox_DIY_Number.Text);
+                var total = (textBox_DIY_Number.Text).toInt32();
                 for (var i = 0; i < total; i++)
                 {
                     var checkboxSelect = (CheckBox)panel_add_DIYControls.Controls.Find("checkBox_Def" + 
@@ -1554,7 +1554,7 @@ namespace Freescale_debug
         private string SendCustomParaAll()
         {
             var NeedSend = "";
-            var total = Convert.ToInt32(textBox_DIY_Number.Text);
+            var total = (textBox_DIY_Number.Text).toInt32();
             for (var i = 0; i < total; i++)
             {
                 var checkboxSelect = (CheckBox) panel_add_DIYControls.Controls.Find("checkBox_Def" +
@@ -1646,7 +1646,7 @@ namespace Freescale_debug
         
         private bool isRealTimeValide()
         {
-            int number = Convert.ToInt32(textBox_Realtime_Number.Text);
+            int number = (textBox_Realtime_Number.Text).toInt32();
             if (number < 1)
             {
                 MessageBox.Show(@"请输入需要的参数数量！", @"错误");
@@ -2139,7 +2139,7 @@ namespace Freescale_debug
                 //essageBox.Show(@"请重新输入需要的参数数量！", @"错误");
                 totalCustomPara = 0;
             }
-            totalCustomPara = Convert.ToInt32(textBox_DIY_Number.Text);
+            totalCustomPara = (textBox_DIY_Number.Text).toInt32();
 
             sw.WriteLine("DIY_Num:{0}", totalCustomPara);
 
@@ -2202,7 +2202,7 @@ namespace Freescale_debug
 
         private int ReadPIDFromText(List<string> lines, int countLine)
         {
-            int carType = Convert.ToInt32(lines.ElementAt(countLine).Split(':').ElementAt(1));
+            int carType = (lines.ElementAt(countLine).Split(':').ElementAt(1)).toInt32();
             countLine++;
 
             if (carType == 0) //直立车
@@ -2293,10 +2293,10 @@ namespace Freescale_debug
             //自定义参数
             if (lines.ElementAt(countLine).Contains("DIY_Num"))
             {
-                int CustomParaNum = Convert.ToInt32(lines.ElementAt(countLine).Split(':').ElementAt(1));
+                int CustomParaNum = lines.ElementAt(countLine).Split(':').ElementAt(1).toInt32();
                 ++countLine;
 
-                if (CustomParaNum == Convert.ToInt32(textBox_DIY_Number.Text))
+                if (CustomParaNum == (textBox_DIY_Number.Text).toInt32())
                 {
                     for (var i = 0; i < CustomParaNum; i++)
                     {
@@ -2383,14 +2383,14 @@ namespace Freescale_debug
 
             if (lines.ElementAt(countLine).Contains("ScopeLineNumber"))
             {
-                int scopeNum = Convert.ToInt32(lines.ElementAt(countLine).Split(':').ElementAt(1));
+                int scopeNum = (lines.ElementAt(countLine).Split(':').ElementAt(1)).toInt32();
                 ++countLine;
 
                 for (var i = 0; i < scopeNum; i++)
                 {
                     if (lines.ElementAt(countLine).Contains("ScopeLineOrder")) //第几个曲线
                     {
-                        int scopeOrder = Convert.ToInt32(lines.ElementAt(countLine).Split(':').ElementAt(1));
+                        int scopeOrder = (lines.ElementAt(countLine).Split(':').ElementAt(1)).toInt32();
                         ++countLine;
 
                         if (lines.ElementAt(countLine).Contains("CurrenScopeName")) //之前的名字,没有这一条就不加
@@ -2412,7 +2412,7 @@ namespace Freescale_debug
                         if (lines.ElementAt(countLine).Contains("PointNumber")) //点数量
                         {
                             int scopePointNum =
-                                Convert.ToInt32(lines.ElementAt(countLine).Split(':').ElementAt(1));
+                                (lines.ElementAt(countLine).Split(':').ElementAt(1)).toInt32();
                             ++countLine;
 
                             char[] charsplit = {'(', ',', ')'};

@@ -97,12 +97,20 @@ namespace Freescale_debug
         {
             var firstRightIndex = originCameraStr.IndexOf('(');
             var indexEnd = originCameraStr.LastIndexOf('|');
+
+            if (firstRightIndex > indexEnd)
+                return;
+
             var cameraMessgageAdd = originCameraStr.Substring(firstRightIndex,
                 indexEnd - firstRightIndex);
 
             var leftIndex = cameraMessgageAdd.IndexOf('(');
             var middleIndex = cameraMessgageAdd.IndexOf('+');
             var rightIndex = cameraMessgageAdd.IndexOf(')');
+
+            if (leftIndex > middleIndex || middleIndex > rightIndex)
+                return;
+
             int widthCamera =
                 Convert.ToInt16(cameraMessgageAdd.Substring(leftIndex + 1, middleIndex - leftIndex - 1));
             int heightCamera =

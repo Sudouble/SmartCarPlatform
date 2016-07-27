@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<!--配置文件为软件自动生成，非软件的编写者不要尝试修改。by leomon 2016/7/8-->
+<!--配置文件为软件自动生成，非软件的编写者不要尝试修改。by leomon 2016/7/27-->
 <configuration firstTimeRunning="false">
   <Stand_P>1.0</Stand_P>
   <Stand_I>1.0</Stand_I>
@@ -101,8 +101,6 @@
   <SCOPE_TextName6>MMA_Z</SCOPE_TextName6>
   <SCOPE_TextName7>none</SCOPE_TextName7>
   <SCOPE_TextName8>cnt_black</SCOPE_TextName8>
-  <acceptChar>False</acceptChar>
-  <showInfo>True</showInfo>
   <radioButton_carType>False</radioButton_carType>
   <DIY_CheckState1>True</DIY_CheckState1>
   <DIY_CheckState2>True</DIY_CheckState2>
@@ -126,12 +124,6 @@
   <SCOPE_CheckState6>True</SCOPE_CheckState6>
   <SCOPE_CheckState7>False</SCOPE_CheckState7>
   <SCOPE_CheckState8>False</SCOPE_CheckState8>
-  <selectedPort>2</selectedPort>
-  <baudRate>11</baudRate>
-  <parity>0</parity>
-  <dataBits>0</dataBits>
-  <stopBits>0</stopBits>
-  <intervalTime>500</intervalTime>
   <DIY_Number>14</DIY_Number>
   <comboboxCCDPath>1</comboboxCCDPath>
 </configuration>
