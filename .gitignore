@@ -1,0 +1,5 @@
+TestResults/*
+Freescale_debug/bin
+Freescale_debug/obj
+Freescale_debug/bin/*
+Freescale_debug/obj/*
