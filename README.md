@@ -1,7 +1,7 @@
 # SmartcarPlatform  [![Build Status](https://travis-ci.com/potterhere/SmartCarPlatform.svg?branch=master)](https://travis-ci.com/potterhere/SmartCarPlatform)
 智能车调试平台，主要为了解决普通智能车参数调试效率低的问题，在此基础上提出的一个解决方案。
 
-![上位机](.\Freescale_debug\Source\master.png)
+![上位机](https://github.com/potterhere/SmartCarPlatform/blob/master/Freescale_debug/Source/master.png)
 
 **主要功能：**
 
@@ -11,7 +11,7 @@
 - 绘制CCD图像（最大支持三个CCD，单个CCD数据大小1*128）
 - **绘制摄像头图像（目前仅支持分辨率80*60）**
 
-Todo:
+**Todo:**
 
 - [ ] 数据分析（模仿Mission Planner的Log分析）
 - [ ] 可调用自定义算法
